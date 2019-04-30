@@ -1,23 +1,18 @@
 import tensorflow as tf
 
-from tensorflow.python.keras.layers import SeparableConv2D, Conv2D, Dense, Softmax, BatchNormalization, GlobalAveragePooling2D, \
-    Input
+from tensorflow.python.keras.layers import SeparableConv2D, Dense, Softmax, BatchNormalization, \
+    GlobalAveragePooling2D
 
 
 class RandWire(tf.keras.Model):
 
-    def __init__(self, C, input_size, n_classes):
+    def __init__(self, C, input_shape, n_classes):
         super(RandWire, self).__init__(name='randomly_wired_network')
 
         self.n_classes = n_classes
 
-        try:  # RGB images
-            height, width, depth = input_size
-        except:  # gray-scale images
-            height, width, depth = input_size + (1,)
-
         self.conv1 = SeparableConv2D(filters=int(C / 2), kernel_size=(3, 3), activation=None,
-                            input_shape=(height, width, depth))
+                                     input_shape=input_shape)
         self.bn1 = BatchNormalization()
 
         self.conv2 = SeparableConv2D(filters=int(C), kernel_size=(3, 3), activation='relu')
@@ -40,7 +35,6 @@ class RandWire(tf.keras.Model):
         self.softmax = Softmax()
 
     def call(self, inputs):
-
         x = self.conv1(inputs)
         x = self.bn1(x)
 

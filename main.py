@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from datasets.dataset_loader import load_dataset
 from model.randwires import RandWireNN
 import tensorflow as tf
+from tensorflow.python import keras
 import argparse
 
 parser = argparse.ArgumentParser('parameters')
@@ -33,13 +36,18 @@ def main():
 
     model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
 
-    optimizer = tf.keras.optimizers.Adam(args.learning_rate)
+    optimizer = keras.optimizers.Adam(args.learning_rate)
     model.build(input_shape=(args.batch_size,) + x_train[0].shape)
     model.summary()
+
     model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
 
-    model.fit(x_train, y_train, epochs=args.epochs, batch_size=args.batch_size)
+    # # Define the Keras TensorBoard callback.
+    # logdir = "logs\\scalars\\" + datetime.now().strftime("%Y%m%d-%H%M%S")+ "\\"
+    # tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir, histogram_freq=1)
+    #
+    # model.fit(x_train, y_train, epochs=args.epochs, batch_size=args.batch_size, callbacks=[tensorboard_callback])
 
 
 if __name__ == '__main__':

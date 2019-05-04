@@ -1,38 +1,42 @@
+from tensorflow.python import keras
 import tensorflow as tf
-
 from tensorflow.python.keras.layers import SeparableConv2D, Dense, Softmax, BatchNormalization, \
-    GlobalAveragePooling2D, ReLU
+    GlobalAveragePooling2D, ReLU, Activation
 
 
-class RandLayer(tf.keras.layers.Layer):
+class RandLayer(keras.layers.Layer):
     pass
 
 
-class Triplet(tf.keras.layers.Layer):
+class Triplet(keras.layers.Layer):
     def __init__(self, channels, name, activation=None, random=False, input_shape=None, strides=(1, 1),
                  kernel_size=(3, 3), N=32):
         super(Triplet, self).__init__(name=name)
+
+        if activation is None or activation == 'linear':
+            self.activation = Activation('linear')
+        elif activation == 'relu':
+            self.activation = Activation('relu')
 
         if random:
             self.conv = RandLayer(channels, N, activation)
         else:
             if input_shape is None:
-                self.conv = SeparableConv2D(filters=channels, kernel_size=kernel_size, strides=strides,
-                                            activation=activation)
+                self.conv = SeparableConv2D(filters=channels, kernel_size=kernel_size, strides=strides)
             else:  # Only in the first layer
                 self.conv = SeparableConv2D(filters=channels, kernel_size=kernel_size, strides=strides,
-                                            activation=activation,
                                             input_shape=input_shape)
 
         self.bn = BatchNormalization()
 
     def call(self, inputs):
-        x = self.conv(inputs)
+        x = self.activation(inputs)
+        x = self.conv(x)
         x = self.bn(x)
         return x
 
 
-class Classifier(tf.keras.layers.Layer):
+class Classifier(keras.layers.Layer):
     def __init__(self, n_classes):
         super(Classifier, self).__init__(name='classifier')
 
@@ -51,7 +55,7 @@ class Classifier(tf.keras.layers.Layer):
         return x
 
 
-class RandWireNN(tf.keras.Model):
+class RandWireNN(keras.Model):
     def __init__(self, args, input_shape, n_classes):
         super(RandWireNN, self).__init__(name='randomly_wired_network')
 
@@ -65,7 +69,7 @@ class RandWireNN(tf.keras.Model):
             self.conv4 = Triplet(channels=2 * args.C, name='conv4', activation='relu', random=False, N=args.N)
             self.conv5 = Triplet(channels=4 * args.C, name='conv5', activation='relu', random=False, N=args.N)
         elif args.regime == 'regular':
-            self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False,
+            self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=(2,2),
                                  input_shape=input_shape)
             self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False, N=args.N // 2)
             self.conv3 = Triplet(channels=2 * args.C, name='conv3', activation='relu', random=False, N=args.N)

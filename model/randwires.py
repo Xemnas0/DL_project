@@ -1,16 +1,70 @@
 from tensorflow.python import keras
 import tensorflow as tf
 from tensorflow.python.keras.layers import SeparableConv2D, Dense, Softmax, BatchNormalization, \
-    GlobalAveragePooling2D, ReLU, Activation
+    GlobalAveragePooling2D, ReLU, Activation, Dropout
+
+import networkx as nx
+from utils import get_graph
+
+
+class Aggregation(keras.layers.Layer):
+
+    def __init__(self, input_dim):
+        super(Aggregation, self).__init__()
+        self.w = self.add_weight(shape=(input_dim, 1, 1, 1, 1),
+                                 initializer='lecun_normal',
+                                 trainable=True)
+        self.sigmoid = keras.activations.sigmoid
+
+    def call(self, inputs):
+        # TODO: debug this plis
+        pos_w = self.sigmoid(self.w)
+        x = pos_w * inputs
+        x = tf.reduce_sum(x, axis=0)
+        return x
 
 
 class RandLayer(keras.layers.Layer):
-    pass
 
+    def __init__(self, channels, random_args, activation):
+        super(RandLayer, self).__init__()
+
+        self.graph, self.graph_order, self.start_node, self.end_node = get_graph(random_args)
+
+        self.triplets = {}
+        self.aggregations = {}
+
+        for node in self.graph_order:
+            if node in self.start_node:
+                self.triplets[node] = Triplet(channels=channels, activation=None, strides=2)
+            else:
+                in_degree = len(nx.ancestors(self.graph, node))
+                self.aggregations[node] = Aggregation(input_dim=in_degree)
+                self.triplets[node] = Triplet(channels=channels, activation='relu')
+
+        self.unweighted_average = tf.reduce_mean
+
+    def call(self, inputs):
+        node_results = {}
+
+        for node in self.graph_order:
+            if node in self.start_node:
+                node_results[node] = self.triplets[node](inputs)
+            else:
+                parents = list(nx.ancestors(self.graph, node))
+                if len(parents) > 1:
+                    parents_output = []
+                    for parent in parents:
+                        parents_output.append(node_results[parent])
+                    parents_output = tf.convert_to_tensor(parents_output)
+                    output_aggregation = self.aggregations[node](parents_output)
+                else:
+                    output_aggregation = node_results[parents[0]]
+                node_results[node] = self.triplets[node](output_aggregation)
 
 class Triplet(keras.layers.Layer):
-    def __init__(self, channels, name, activation=None, random=False, input_shape=None, strides=(1, 1),
-                 kernel_size=(3, 3), N=32):
+    def __init__(self, channels, name=None, activation=None, random=False, input_shape=None, strides=(1, 1),
+                 kernel_size=(3, 3), rand_args=None):
         super(Triplet, self).__init__(name=name)
 
         if activation is None or activation == 'linear':
@@ -19,12 +73,13 @@ class Triplet(keras.layers.Layer):
             self.activation = Activation('relu')
 
         if random:
-            self.conv = RandLayer(channels, N, activation)
+            assert rand_args is not None
+            self.conv = RandLayer(channels, rand_args, activation)
         else:
             if input_shape is None:
-                self.conv = SeparableConv2D(filters=channels, kernel_size=kernel_size, strides=strides)
+                self.conv = SeparableConv2D(filters=channels, kernel_size=kernel_size, strides=strides, padding='same')
             else:  # Only in the first layer
-                self.conv = SeparableConv2D(filters=channels, kernel_size=kernel_size, strides=strides,
+                self.conv = SeparableConv2D(filters=channels, kernel_size=kernel_size, strides=strides, padding='same',
                                             input_shape=input_shape)
 
         self.bn = BatchNormalization()
@@ -44,6 +99,7 @@ class Classifier(keras.layers.Layer):
         self.bn = BatchNormalization()
         self.avg_pool = GlobalAveragePooling2D()
         self.fc = Dense(units=n_classes)
+        self.droput = Dropout(0.2)
         self.softmax = Softmax()
 
     def call(self, inputs):
@@ -51,6 +107,7 @@ class Classifier(keras.layers.Layer):
         x = self.bn(x)
         x = self.avg_pool(x)
         x = self.fc(x)
+        x = self.droput(x)
         x = self.softmax(x)
         return x
 
@@ -60,21 +117,26 @@ class RandWireNN(keras.Model):
         super(RandWireNN, self).__init__(name='randomly_wired_network')
 
         self.n_classes = n_classes
-
+        self.random_args = {'n': args.N, 'p': args.P, 'k': args.K, 'm': args.M, 'seed': args.seed,
+                            'graph_mode': args.graph_mode}
         if args.regime == 'small':
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False,
                                  input_shape=input_shape)
             self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False)
-            self.conv3 = Triplet(channels=args.C, name='conv3', activation='relu', random=False, N=args.N)
-            self.conv4 = Triplet(channels=2 * args.C, name='conv4', activation='relu', random=False, N=args.N)
-            self.conv5 = Triplet(channels=4 * args.C, name='conv5', activation='relu', random=False, N=args.N)
+            self.conv3 = Triplet(channels=args.C, name='conv3', activation='relu', random=True,
+                                 rand_args=self.random_args)
+            self.conv4 = Triplet(channels=2 * args.C, name='conv4', activation='relu', random=False)
+            self.conv5 = Triplet(channels=4 * args.C, name='conv5', activation='relu', random=False)
         elif args.regime == 'regular':
-            self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=(2,2),
+            self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)
-            self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False, N=args.N // 2)
-            self.conv3 = Triplet(channels=2 * args.C, name='conv3', activation='relu', random=False, N=args.N)
-            self.conv4 = Triplet(channels=4 * args.C, name='conv4', activation='relu', random=False, N=args.N)
-            self.conv5 = Triplet(channels=8 * args.C, name='conv5', activation='relu', random=False, N=args.N)
+            self.random_args['n'] = self.random_args['n'] // 2
+            self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=True,
+                                 rand_args=self.random_args)
+            self.random_args['n'] = self.random_args['n'] * 2
+            self.conv3 = Triplet(channels=2 * args.C, name='conv3', activation='relu', random=False)
+            self.conv4 = Triplet(channels=4 * args.C, name='conv4', activation='relu', random=False)
+            self.conv5 = Triplet(channels=8 * args.C, name='conv5', activation='relu', random=False)
 
         self.classifier = Classifier(n_classes=n_classes)
 

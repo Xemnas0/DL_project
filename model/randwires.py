@@ -38,9 +38,10 @@ class RandLayer(keras.layers.Layer):
             if node in self.start_node:
                 self.triplets[node] = Triplet(channels=channels, activation=None, strides=2)
             else:
-                in_degree = len(nx.ancestors(self.graph, node))
-                self.aggregations[node] = Aggregation(input_dim=in_degree)
-                self.triplets[node] = Triplet(channels=channels, activation='relu')
+                in_degree = self.graph.in_degree[node]
+                if in_degree > 1:
+                    self.aggregations[node] = Aggregation(input_dim=in_degree)
+                self.triplets[node] = Triplet(channels=channels, activation=activation)
 
         self.unweighted_average = tf.reduce_mean
 
@@ -51,7 +52,7 @@ class RandLayer(keras.layers.Layer):
             if node in self.start_node:
                 node_results[node] = self.triplets[node](inputs)
             else:
-                parents = list(nx.ancestors(self.graph, node))
+                parents = list(self.graph.predecessors(node))
                 if len(parents) > 1:
                     parents_output = []
                     for parent in parents:
@@ -61,6 +62,15 @@ class RandLayer(keras.layers.Layer):
                 else:
                     output_aggregation = node_results[parents[0]]
                 node_results[node] = self.triplets[node](output_aggregation)
+
+        output_last_nodes = []
+        for node in self.end_node:
+            output_last_nodes.append(node_results[node])
+        output_last_nodes = tf.convert_to_tensor(output_last_nodes)
+        final_output = self.unweighted_average(output_last_nodes, axis=0)
+
+        return final_output
+
 
 class Triplet(keras.layers.Layer):
     def __init__(self, channels, name=None, activation=None, random=False, input_shape=None, strides=(1, 1),

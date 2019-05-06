@@ -1,6 +1,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import collections
+from networkx.drawing.nx_agraph import write_dot, graphviz_layout
+from IPython.display import Image
 
 Node = collections.namedtuple('Node', ['id', 'inputs', 'type'])
 
@@ -31,6 +33,20 @@ def get_graph(args):
             out_node.append(outdeg[0])
 
     sorted = list(nx.topological_sort(dgraph))
+
+    # write_dot(dgraph, 'test.dot')
+
+    # pos = nx.drawing.nx_pydot.pydot_layout(dgraph)
+    # png_str = d.create_png()
+    # Image(data=png_str)
+    # pos = graphviz_layout(dgraph, prog='dot')
+    # nx.draw(dgraph, pos, with_labels=True, arrows=True, prog='dot')
+    # plt.savefig('nx_test.png')
+
+    # plt.show()
+
+    # nx.drawing.nx_agraph.view_pygraphviz(dgraph)
+
 
     return dgraph, sorted, in_node, out_node
 

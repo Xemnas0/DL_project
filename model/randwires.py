@@ -16,7 +16,7 @@ class Aggregation(keras.layers.Layer):
                                  trainable=True)
         self.sigmoid = keras.activations.sigmoid
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         # TODO: debug this plis
         pos_w = self.sigmoid(self.w)
         x = pos_w * inputs
@@ -45,7 +45,7 @@ class RandLayer(keras.layers.Layer):
 
         self.unweighted_average = tf.reduce_mean
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         node_results = {}
 
         for node in self.graph_order:
@@ -94,7 +94,7 @@ class Triplet(keras.layers.Layer):
 
         self.bn = BatchNormalization()
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         x = self.activation(inputs)
         x = self.conv(x)
         x = self.bn(x)
@@ -112,7 +112,7 @@ class Classifier(keras.layers.Layer):
         self.droput = Dropout(0.2)
         self.softmax = Softmax()
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         x = self.conv(inputs)
         x = self.bn(x)
         x = self.avg_pool(x)
@@ -135,8 +135,10 @@ class RandWireNN(keras.Model):
             self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False)
             self.conv3 = Triplet(channels=args.C, name='conv3', activation='relu', random=True,
                                  rand_args=self.random_args)
-            self.conv4 = Triplet(channels=2 * args.C, name='conv4', activation='relu', random=False)
-            self.conv5 = Triplet(channels=4 * args.C, name='conv5', activation='relu', random=False)
+            self.conv4 = Triplet(channels=2 * args.C, name='conv4', activation='relu', random=True,
+                                 rand_args=self.random_args)
+            self.conv5 = Triplet(channels=4 * args.C, name='conv5', activation='relu', random=True,
+                                 rand_args=self.random_args)
         elif args.regime == 'regular':
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)
@@ -144,14 +146,17 @@ class RandWireNN(keras.Model):
             self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=True,
                                  rand_args=self.random_args)
             self.random_args['n'] = self.random_args['n'] * 2
-            self.conv3 = Triplet(channels=2 * args.C, name='conv3', activation='relu', random=False)
-            self.conv4 = Triplet(channels=4 * args.C, name='conv4', activation='relu', random=False)
-            self.conv5 = Triplet(channels=8 * args.C, name='conv5', activation='relu', random=False)
+            self.conv3 = Triplet(channels=2 * args.C, name='conv3', activation='relu', random=True,
+                                 rand_args=self.random_args)
+            self.conv4 = Triplet(channels=4 * args.C, name='conv4', activation='relu', random=True,
+                                 rand_args=self.random_args)
+            self.conv5 = Triplet(channels=8 * args.C, name='conv5', activation='relu', random=True,
+                                 rand_args=self.random_args)
 
         self.classifier = Classifier(n_classes=n_classes)
 
     # noinspection PyCallingNonCallable
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
 
         x = self.conv1(inputs)
         x = self.conv2(x)

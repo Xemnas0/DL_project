@@ -3,22 +3,25 @@ import matplotlib.pyplot as plt
 import collections
 from networkx.drawing.nx_agraph import write_dot, graphviz_layout
 from IPython.display import Image
+import numpy as np
+import sys
 
 Node = collections.namedtuple('Node', ['id', 'inputs', 'type'])
 
+MAXINT32 = 4294967295 // 10
 
 def get_graph(args):
     n = args['n']
     k = args['k']
     p = args['p']
     m = args['m']
-    seed = args['seed']
+
     if args['graph_mode'] == 'WS':
-        graph = nx.generators.connected_watts_strogatz_graph(n=n, k=k, p=p, seed=seed)
+        graph = nx.generators.connected_watts_strogatz_graph(n=n, k=k, p=p, seed=np.random.randint(0, MAXINT32))
     elif args['graph_mode'] == 'ER':
-        graph = nx.generators.erdos_renyi_graph(n=n, p=p, seed=seed)
+        graph = nx.generators.erdos_renyi_graph(n=n, p=p, seed=np.random.randint(0, MAXINT32))
     elif args['graph_mode'] == 'BA':
-        graph = nx.barabasi_albert_graph(n=n, m=m, seed=seed)
+        graph = nx.barabasi_albert_graph(n=n, m=m, seed=np.random.randint(0, MAXINT32))
 
     dgraph = nx.DiGraph()
     dgraph.add_nodes_from(graph.nodes)
@@ -45,10 +48,10 @@ def get_graph(args):
 
     # plt.show()
 
-    # nx.drawing.nx_agraph.view_pygraphviz(dgraph)
-
+    nx.drawing.nx_agraph.view_pygraphviz(dgraph)
 
     return dgraph, sorted, in_node, out_node
+
 
 if __name__ == '__main__':
     n = 16

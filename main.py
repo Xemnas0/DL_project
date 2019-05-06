@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow.python import keras
 from tqdm import tqdm
 import argparse
+import numpy as np
 
 parser = argparse.ArgumentParser('parameters')
 
@@ -32,6 +33,7 @@ parser.add_argument('--load-model', type=bool, default=False)  # TODO: to load f
 
 args = parser.parse_args()
 
+np.random.seed(args.seed)
 
 def loss(model, x, y):
     y_ = model(x)

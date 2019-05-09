@@ -3,6 +3,8 @@ from tensorflow.python import keras
 import tensorflow as tf
 import numpy as np
 
+from datasets.load_tiny_imagenet import load_tiny_imagenet
+
 EXISTING_DATASETS = ['MNIST', 'CIFAR10', 'CIFAR100']
 
 
@@ -34,6 +36,11 @@ def load_dataset(dataset_name):
         y_test = tf.cast(y_test, tf.int64)
         Y_train = tf.one_hot(y_train[:, 0], y_train.numpy().max() + 1, dtype=tf.int32)
         Y_test = tf.one_hot(y_test, y_test.numpy().max()+1, dtype=tf.int32)
+
+    elif dataset_name == 'TINY_IMAGENET':
+        path = '../data/tiny-imagenet-200'
+        X_train, y_train, X_test, y_test = load_tiny_imagenet(path)
+
     print(f'Dataset {dataset_name} loaded.')
 
     return (x_train, y_train, Y_train), (x_test, y_test, Y_test)

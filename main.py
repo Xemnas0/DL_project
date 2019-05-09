@@ -9,9 +9,11 @@ from tqdm import tqdm
 import argparse
 import numpy as np
 
+from model.resnets import ResNet
+
 parser = argparse.ArgumentParser('parameters')
 
-parser.add_argument('--epochs', type=int, default=100, help='Number of epochs. (default: 100)')
+parser.add_argument('--epochs', type=int, default=1, help='Number of epochs. (default: 100)')
 parser.add_argument('--P', type=float, default=0.75, help='Graph edge probability. (default: 0.75)')
 parser.add_argument('--C', type=int, default=32,
                     help='Number of channels. (default: --)')
@@ -28,23 +30,26 @@ parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning 
 parser.add_argument('--batch-size', type=int, default=32, help='Batch size. (default: --)')
 parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
-parser.add_argument('--dataset', type=str, default="MNIST",
-                    help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST] (default: CIFAR10)')
+parser.add_argument('--dataset', type=str, default="TINY_IMAGENET",
+                    help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
 args = parser.parse_args()
 
 np.random.seed(args.seed)
 
 
 def main():
-    (x_train, y_train, Y_train), (x_test, y_test, Y_test) = load_dataset(args.dataset)
+    (x_train, y_train, Y_train), (x_val, y_val, Y_val), (x_test, y_test, Y_test) = load_dataset(args.dataset)
 
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     train_dataset = train_dataset.shuffle(buffer_size=x_train.shape[0]).batch(args.batch_size)
 
-    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
-    test_dataset = test_dataset.shuffle(buffer_size=y_test.shape[0]).batch(args.batch_size)
+    # test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+    # test_dataset = test_dataset.shuffle(buffer_size=y_test.shape[0]).batch(args.batch_size)
 
-    model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1)
+    # model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1)
+    model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1).get_ready_model()
+
+    # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
     optimizer = keras.optimizers.Adam(args.learning_rate)
 
@@ -54,12 +59,13 @@ def main():
     model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
                   metrics=[keras.metrics.sparse_categorical_accuracy])
 
-    model.save_graph_image(path='./graph_images/')
+    # model.save_graph_image(path='./graph_images/')
 
+    model.fit(train_dataset, epochs=args.epochs)
     # model.fit(train_dataset, epochs=args.epochs, callbacks=callbacks)
-    #
+
     # loss, acc = model.evaluate(test_dataset)
-    #
+
     # print(f'test loss: {loss:.4f}\ttest acc: {acc:.2f*100}%')
 
 

@@ -16,7 +16,14 @@ class DataAugmentation:
     def flip_upside_down(self, image):
         return tf.image.flip_up_down(image)
 
-    # def rotate(self, image):
+    def pad_and_crop(self, image, shape, pad_size=2):
+        image = tf.image.pad_to_bounding_box(image, pad_size, pad_size, shape[0] + pad_size * 2,
+                                             shape[1] + pad_size * 2)
+        return tf.image.random_crop(image, shape)
+
+    def standardization(self, image):
+        return tf.image.per_image_standardization(image)
+
 
 
 def show_image(original_image, augmented_image, title):
@@ -51,4 +58,10 @@ if __name__ == "__main__":
 
     flipped = augment.flip_upside_down(img_tensor)
     show_image(img_tensor, flipped, 'flip_image_upside_down')
+
+    # pad = augment.pad_and_crop(img_tensor, [30,20])
+    # show_image(img_tensor, pad, 'pad')
+
+    # stand = augment.standardization(img_tensor)
+    # show_image(img_tensor, stand, 'standardization')
 

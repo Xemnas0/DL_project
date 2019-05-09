@@ -11,11 +11,7 @@ Node = collections.namedtuple('Node', ['id', 'inputs', 'type'])
 
 MAXINT32 = 4294967295 // 10
 
-i = 0
-
-
 def get_graph(args, n):
-    global i
     k = args['k']
     p = args['p']
     m = args['m']
@@ -40,30 +36,11 @@ def get_graph(args, n):
             out_node.append(outdeg[0])
 
     sorted = list(nx.topological_sort(dgraph))
-    print('Graph generated...')
 
-    # write_dot(dgraph, 'test.dot')
-
-    # pos = nx.drawing.nx_pydot.pydot_layout(dgraph)
-    # png_str = d.create_png()
-    # Image(data=png_str)
-    # pos = graphviz_layout(dgraph, prog='dot')
-    # nx.draw(dgraph, pos, with_labels=True, arrows=True, prog='dot')
-    # plt.savefig('nx_test.png')
-
-    pygraphviz_graph = nx.drawing.nx_agraph.to_agraph(dgraph)
-    pygraphviz_graph.add_subgraph(in_node, rank='same')
-    pygraphviz_graph.add_subgraph(out_node, rank='same')
-    pygraphviz_graph.draw(path=f'graph_image{i}.png', prog='dot')
-    i += 1
-    plt.show()
-
-    # nx.drawing.nx_agraph.view_pygraphviz(pygraphviz_graph)
-    # formatted_graph = nx.drawing.nx_agraph.from_agraph(pygraphviz_graph)
-    # nx.drawing.nx_agraph.view_pygraphviz(formatted_graph)
-    # plt.show()
-
-    # nx.drawing.nx_agraph.view_pygraphviz(dgraph)
+    # pygraphviz_graph = nx.drawing.nx_agraph.to_agraph(dgraph)
+    # pygraphviz_graph.add_subgraph(in_node, rank='same')
+    # pygraphviz_graph.add_subgraph(out_node, rank='same')
+    # pygraphviz_graph.draw(path='graph_image.png', prog='dot')
 
     return dgraph, sorted, in_node, out_node
 

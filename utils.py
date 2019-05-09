@@ -10,8 +10,8 @@ Node = collections.namedtuple('Node', ['id', 'inputs', 'type'])
 
 MAXINT32 = 4294967295 // 10
 
-def get_graph(args):
-    n = args['n']
+def get_graph(args, n):
+
     k = args['k']
     p = args['p']
     m = args['m']
@@ -36,6 +36,7 @@ def get_graph(args):
             out_node.append(outdeg[0])
 
     sorted = list(nx.topological_sort(dgraph))
+    print('Graph generated...')
 
     # write_dot(dgraph, 'test.dot')
 

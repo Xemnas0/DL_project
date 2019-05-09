@@ -5,13 +5,17 @@ from networkx.drawing.nx_agraph import write_dot, graphviz_layout
 from IPython.display import Image
 import numpy as np
 import sys
+import pygraphviz as pgv
 
 Node = collections.namedtuple('Node', ['id', 'inputs', 'type'])
 
 MAXINT32 = 4294967295 // 10
 
-def get_graph(args, n):
+i = 0
 
+
+def get_graph(args, n):
+    global i
     k = args['k']
     p = args['p']
     m = args['m']
@@ -47,9 +51,19 @@ def get_graph(args, n):
     # nx.draw(dgraph, pos, with_labels=True, arrows=True, prog='dot')
     # plt.savefig('nx_test.png')
 
+    pygraphviz_graph = nx.drawing.nx_agraph.to_agraph(dgraph)
+    pygraphviz_graph.add_subgraph(in_node, rank='same')
+    pygraphviz_graph.add_subgraph(out_node, rank='same')
+    pygraphviz_graph.draw(path=f'graph_image{i}.png', prog='dot')
+    i += 1
+    plt.show()
+
+    # nx.drawing.nx_agraph.view_pygraphviz(pygraphviz_graph)
+    # formatted_graph = nx.drawing.nx_agraph.from_agraph(pygraphviz_graph)
+    # nx.drawing.nx_agraph.view_pygraphviz(formatted_graph)
     # plt.show()
 
-    nx.drawing.nx_agraph.view_pygraphviz(dgraph)
+    # nx.drawing.nx_agraph.view_pygraphviz(dgraph)
 
     return dgraph, sorted, in_node, out_node
 

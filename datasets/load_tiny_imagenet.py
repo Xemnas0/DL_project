@@ -1,9 +1,11 @@
 import numpy as np
 from PIL import Image
 import os
+from tqdm import tqdm
 
-PATH_TO_VAL_ANNOT = '/Users/leonidas/PycharmProjects/DL_project/data/tiny-imagenet-200/val/val_annotations.txt'
-SAVE_PATH = '/Users/leonidas/PycharmProjects/DL_project/datasets/tiny_imagenet_data.npz'
+PATH_TO_VAL_ANNOT = 'datasets/tiny-imagenet-200/val/val_annotations.txt'
+SAVE_PATH = 'datasets/tiny_imagenet_data.npz'
+
 
 def get_val_ids():
     lines = open(PATH_TO_VAL_ANNOT, 'r').read()
@@ -27,8 +29,8 @@ def read_image(path):
 
     return image
 
-def save_to_file(X_train, y_train, X_val, y_val, X_test):
 
+def save_to_file(X_train, y_train, X_val, y_val, X_test):
     np.savez(SAVE_PATH, X_train=X_train, y_train=y_train,
              X_val=X_val, y_val=y_val, X_test=X_test)
 
@@ -40,6 +42,7 @@ def load_from_file(path):
         X_test = f['X_test']
 
     return [X_train, y_train, X_val, y_val, X_test]
+
 
 def load_tiny_imagenet(path):
     # Load images
@@ -63,8 +66,12 @@ def load_tiny_imagenet(path):
 
     train_folders = os.listdir(train_path)
     train_folders.sort()
-    train_folders.remove('.DS_Store')
-    for root in train_folders:
+    try:
+        train_folders.remove('.DS_Store')
+    except:
+        pass
+    print('Loading train set')
+    for root in tqdm(train_folders):
 
         child_root = os.path.join(os.path.join(train_path, root), 'images')
         classes[root] = class_index
@@ -80,7 +87,8 @@ def load_tiny_imagenet(path):
         class_index += 1
 
     image_counter = 0
-    for image_filename in os.listdir(val_path):
+    print('Loading val set')
+    for image_filename in tqdm(os.listdir(val_path)):
         if not val_map[image_filename] in classes.keys():
             continue
 
@@ -88,7 +96,8 @@ def load_tiny_imagenet(path):
         y_val[image_counter] = classes[val_map[image_filename]]
         image_counter += 1
 
-    for index, filename in enumerate(os.listdir(test_path)):
+    print('Loading test set')
+    for index, filename in enumerate(tqdm(os.listdir(test_path))):
         if not filename.lower().endswith(".jpeg"):
             print('continue test {}'.format(filename))
             continue
@@ -101,10 +110,24 @@ def load_tiny_imagenet(path):
 
     return [X_train, y_train, X_val, y_val, X_test]
 
+
 # Tiny ImageNet Challenge is the default course project for Stanford CS231N.
 # It runs similar to the ImageNet challenge (ILSVRC).
 # Tiny ImageNet has 200 classes and each class has 500 training images, 50 validation images, and 50 test images.
 # The images are down-sampled to 64 x 64 pixels.
+
+def load_tinyimagenet_dict():
+    classes = {}
+    path = 'datasets/tiny-imagenet-200'
+    train_path = path + '/train'
+    train_folders = os.listdir(train_path)
+    train_folders.sort()
+    i = 0
+    for class_name in train_folders:
+        classes[i] = class_name
+        i += 1
+    return classes
+
 if __name__ == "__main__":
     path = '../data/tiny-imagenet-200'
     save_path = 'tiny_imagenet_data.npz'
@@ -114,4 +137,3 @@ if __name__ == "__main__":
     npzfile = np.load(save_path)
 
     print(npzfile.files)
-

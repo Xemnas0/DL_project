@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 from datasets.dataset_loader import load_dataset
+from datasets.load_tiny_imagenet import load_tinyimagenet_dict
 from model.randwires import RandWireNN
 import tensorflow as tf
 from tensorflow.python import keras
@@ -41,13 +42,16 @@ def main():
     (x_train, y_train, Y_train), (x_val, y_val, Y_val), (x_test, y_test, Y_test) = load_dataset(args.dataset)
 
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-    train_dataset = train_dataset.shuffle(buffer_size=x_train.shape[0]).batch(args.batch_size)
+    train_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
 
-    # test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
-    # test_dataset = test_dataset.shuffle(buffer_size=y_test.shape[0]).batch(args.batch_size)
+    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val))
+    val_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
 
-    # model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1)
-    model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1).get_ready_model()
+    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+    test_dataset = test_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
+
+    model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1)
+    # model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1).get_ready_model()
 
     # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
@@ -64,9 +68,8 @@ def main():
     model.fit(train_dataset, epochs=args.epochs)
     # model.fit(train_dataset, epochs=args.epochs, callbacks=callbacks)
 
-    # loss, acc = model.evaluate(test_dataset)
-
-    # print(f'test loss: {loss:.4f}\ttest acc: {acc:.2f*100}%')
+    loss, acc = model.evaluate(test_dataset)
+    print(f'test loss: {loss:.4f}\ttest acc: {acc:.2f*100}%')
 
 
 if __name__ == '__main__':

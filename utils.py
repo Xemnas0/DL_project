@@ -5,7 +5,7 @@ from networkx.drawing.nx_agraph import write_dot, graphviz_layout
 from IPython.display import Image
 import numpy as np
 import sys
-import pygraphviz as pgv
+# import pygraphviz as pgv
 
 Node = collections.namedtuple('Node', ['id', 'inputs', 'type'])
 

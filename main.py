@@ -39,16 +39,13 @@ np.random.seed(args.seed)
 
 
 def main():
-    (x_train, y_train, Y_train), (x_val, y_val, Y_val), (x_test, y_test, Y_test) = load_dataset(args.dataset)
+    (x_train, y_train, Y_train), (x_test, y_test, Y_test) = load_dataset(args.dataset)
 
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     train_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
 
-    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val))
-    val_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
-
     test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
-    test_dataset = test_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
+    test_dataset = test_dataset.shuffle(buffer_size=y_test.shape[0]).batch(args.batch_size)
 
     model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1)
     # model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.numpy().max() + 1).get_ready_model()

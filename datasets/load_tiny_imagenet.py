@@ -29,21 +29,20 @@ def read_image(path):
 
     return image
 
-
 def save_to_file(X_train, y_train, X_val, y_val, X_test):
     np.savez(SAVE_PATH, X_train=X_train, y_train=y_train,
-             X_val=X_val, y_val=y_val, X_test=X_test)
+             X_val=X_val, y_val=y_val)
 
 
 def load_from_file(path):
     with np.load(path) as f:
         X_train, y_train = f['X_train'], f['y_train']
         X_val, y_val = f['X_val'], f['y_val']
-        X_test = f['X_test']
 
-    return [X_train, y_train, X_val, y_val, X_test]
+    return [X_train, y_train, X_val, y_val]
 
 
+# validation is the test because test has no labels
 def load_tiny_imagenet(path):
     # Load images
     num_classes = 200
@@ -52,11 +51,9 @@ def load_tiny_imagenet(path):
     y_train = np.zeros([num_classes * 500], dtype='uint8')
     X_val = np.zeros([num_classes * 50, 64, 64, 3], dtype='uint8')
     y_val = np.zeros([num_classes * 50], dtype='uint8')
-    X_test = np.zeros([num_classes * 50, 64, 64, 3], dtype='uint8')
 
     train_path = path + '/train'
     val_path = path + '/val/images'
-    test_path = path + '/test/images'
     val_map = get_val_ids()
 
     image_counter = 0
@@ -66,10 +63,11 @@ def load_tiny_imagenet(path):
 
     train_folders = os.listdir(train_path)
     train_folders.sort()
-    try:
-        train_folders.remove('.DS_Store')
-    except:
-        pass
+
+
+    folder = '.DS_Store'
+    if folder in train_folders:
+        train_folders.remove(folder)
     print('Loading train set')
     for root in tqdm(train_folders):
 
@@ -96,19 +94,12 @@ def load_tiny_imagenet(path):
         y_val[image_counter] = classes[val_map[image_filename]]
         image_counter += 1
 
-    print('Loading test set')
-    for index, filename in enumerate(tqdm(os.listdir(test_path))):
-        if not filename.lower().endswith(".jpeg"):
-            print('continue test {}'.format(filename))
-            continue
-        X_test[index] = read_image(os.path.join(test_path, filename))
-
     y_train = np.reshape(y_train, (len(y_train), 1))
     y_val = np.reshape(y_val, (len(y_val), 1))
 
-    save_to_file(X_train, y_train, X_val, y_val, X_test)
+    save_to_file(X_train, y_train, X_val, y_val)
 
-    return [X_train, y_train, X_val, y_val, X_test]
+    return [X_train, y_train, X_val, y_val]
 
 
 # Tiny ImageNet Challenge is the default course project for Stanford CS231N.

@@ -148,24 +148,17 @@ class RandWireNN(keras.Model):
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False,
                                  input_shape=input_shape)
             self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False)
-
-            for stage in range(args.stages):
-                self.stages.append(
-                    Triplet(channels=channels, name=f'conv{3+stage}', activation='relu', random=True, N=args.N,
-                            rand_args=self.random_args))
-                channels *= 2
-
         elif args.regime == 'regular':
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)
             self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=True, N=args.N // 2,
                                  rand_args=self.random_args)
 
-            for stage in range(args.stages):
-                self.stages.append(
-                    Triplet(channels=channels, name=f'conv{3+stage}', activation='relu', random=True, N=args.N,
-                            rand_args=self.random_args))
-                channels *= 2
+        for stage in range(args.stages):
+            self.stages.append(
+                Triplet(channels=channels, name=f'conv{3+stage}', activation='relu', random=True, N=args.N,
+                        rand_args=self.random_args))
+            channels *= 2
 
         self.classifier = Classifier(n_classes=n_classes)
 

@@ -246,6 +246,7 @@ class RandWireNN(keras.Model):
 
     def get_filename(self):
         filename = None
+        n_stages = len(self.stages)
         if self.random_args['graph_mode'] == 'WS':
             filename = 'WS_{4}_stages{5}_N{0}_K{1}_P{2}_seed{3}'.format(self.random_args['n'],
                                                                             self.random_args['k'],

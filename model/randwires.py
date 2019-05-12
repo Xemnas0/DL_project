@@ -240,8 +240,14 @@ class RandWireNN(keras.Model):
 
         # pygraphviz_graph.add_subgraph(in_node, rank='same')
         # pygraphviz_graph.add_subgraph(out_node, rank='same')
+        filename = self.get_filename() + '.png'
+
+        pygraphviz_graph.draw(path=path + filename, prog='dot')
+
+    def get_filename(self):
+        filename = None
         if self.random_args['graph_mode'] == 'WS':
-            filename = 'WS_{4}_stages{5}_N{0}_K{1}_P{2}_seed{3}.png'.format(self.random_args['n'],
+            filename = 'WS_{4}_stages{5}_N{0}_K{1}_P{2}_seed{3}'.format(self.random_args['n'],
                                                                             self.random_args['k'],
                                                                             int(self.random_args['p'] * 100),
                                                                             self.random_args['seed'],
@@ -249,7 +255,7 @@ class RandWireNN(keras.Model):
                                                                             n_stages
                                                                             )
         elif self.random_args['graph_mode'] == 'ER':
-            filename = 'ER_{3}_stages{4}_N{0}_P{1}_seed{2}.png'.format(
+            filename = 'ER_{3}_stages{4}_N{0}_P{1}_seed{2}'.format(
                 self.random_args['n'],
                 int(self.random_args['p'] * 100),
                 self.random_args['seed'],
@@ -257,11 +263,11 @@ class RandWireNN(keras.Model):
                 n_stages
             )
         elif self.random_args['graph_mode'] == 'BA':
-            filename = 'BA_{3}_stages{4}_N{0}_M{1}_seed{2}.png'.format(
+            filename = 'BA_{3}_stages{4}_N{0}_M{1}_seed{2}'.format(
                 self.random_args['n'],
                 self.random_args['m'],
                 self.random_args['seed'],
                 self.random_args['regime'],
                 n_stages
             )
-        pygraphviz_graph.draw(path=path + filename, prog='dot')
+        return filename

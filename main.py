@@ -42,12 +42,6 @@ np.random.seed(args.seed)
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
 
-    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-    train_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
-
-    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
-    test_dataset = test_dataset.shuffle(buffer_size=y_test.shape[0]).batch(args.batch_size)
-
     model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
     # model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1).get_ready_model()
 
@@ -61,15 +55,21 @@ def main():
     model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
                   metrics=[keras.metrics.sparse_categorical_accuracy])
 
-    model.save_graph_image(path='./graph_images/')
+    # model.save_graph_image(path='./graph_images/')
 
-    history = model.fit(train_dataset, epochs=args.epochs)
+    history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
     results = history.history
 
-    loss, acc = model.evaluate(test_dataset)
-    print(f'test loss: {loss:.4f}\ttest acc: {acc:.2f*100}%')
+    loss, acc = model.evaluate(x_test, y_test)
+    history['test_loss'] = loss
+    history['test_acc'] = acc
+    
+    filename = 'history_{0}_batchsize{1}_eta{2}_{3}'.format(args.dataset,
+                                                        args.batch_size,
+                                                        args.learning_rate,
+                                                        model.get_filename())
 
-    pickle_out = open("dict.pickle","wb")
+    pickle_out = open(filename+".pickle","wb")
     pickle.dump(results, pickle_out)
     pickle_out.close()
 

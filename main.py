@@ -23,7 +23,7 @@ parser.add_argument('--K', type=int, default=4,
 parser.add_argument('--M', type=int, default=1,
                     help='Number of edges to attach from a new node to existing nodes. (default: 5)')
 parser.add_argument('--seed', type=int, default=0, help='Random seed initializer.')
-parser.add_argument('--graph-mode', type=str, default="WS",
+parser.add_argument('--graph-mode', type=str, default="BA",
                     help="Random graph family. [ER, WS, BA] (default: WS)")
 parser.add_argument('--N', type=int, default=32, help="Number of graph node. (default: 32)")
 parser.add_argument('--stages', type=int, default=3, help='Number of random layers. (default: 1)')
@@ -31,7 +31,7 @@ parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning 
 parser.add_argument('--batch-size', type=int, default=32, help='Batch size. (default: --)')
 parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
-parser.add_argument('--dataset', type=str, default="TINY_IMAGENET",
+parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
 args = parser.parse_args()
 
@@ -60,13 +60,13 @@ def main():
     model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
                   metrics=[keras.metrics.sparse_categorical_accuracy])
 
-    # model.save_graph_image(path='./graph_images/')
+    model.save_graph_image(path='./graph_images/')
 
-    model.fit(train_dataset, epochs=args.epochs)
+    # model.fit(train_dataset, epochs=args.epochs)
     # model.fit(train_dataset, epochs=args.epochs, callbacks=callbacks)
 
-    loss, acc = model.evaluate(test_dataset)
-    print(f'test loss: {loss:.4f}\ttest acc: {acc:.2f*100}%')
+    # loss, acc = model.evaluate(test_dataset)
+    # print(f'test loss: {loss:.4f}\ttest acc: {acc:.2f*100}%')
 
 
 if __name__ == '__main__':

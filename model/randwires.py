@@ -145,9 +145,9 @@ class RandWireNN(keras.Model):
         channels = args.C
 
         if args.regime == 'small':
-            self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False,
+            self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)
-            self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False)
+            self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False, strides=2)
         elif args.regime == 'regular':
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)
@@ -259,7 +259,7 @@ class RandWireNN(keras.Model):
         elif self.random_args['graph_mode'] == 'BA':
             filename = 'BA_{3}_stages{4}_N{0}_M{1}_seed{2}.png'.format(
                 self.random_args['n'],
-                int(self.random_args['p'] * 100),
+                self.random_args['m'],
                 self.random_args['seed'],
                 self.random_args['regime'],
                 n_stages

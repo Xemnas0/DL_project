@@ -6,22 +6,28 @@ from IPython.display import Image
 import numpy as np
 import sys
 # import pygraphviz as pgv
+from genrandgraphNX import gen_BA_graph, gen_ER_graph, gen_WS_graph
 
 Node = collections.namedtuple('Node', ['id', 'inputs', 'type'])
 
 MAXINT32 = 4294967295 // 10
 
+
 def get_graph(args, n):
+    np.random.seed(args['seed'])
     k = args['k']
     p = args['p']
     m = args['m']
 
     if args['graph_mode'] == 'WS':
-        graph = nx.generators.connected_watts_strogatz_graph(n=n, k=k, p=p, seed=np.random.randint(0, MAXINT32))
+        graph = gen_WS_graph(k=k, p=p, n=n, seed=np.random.randint(0, MAXINT32))
+        # nx.generators.connected_watts_strogatz_graph(n=n, k=k, p=p, seed=np.random.randint(0, MAXINT32))
     elif args['graph_mode'] == 'ER':
-        graph = nx.generators.erdos_renyi_graph(n=n, p=p, seed=np.random.randint(0, MAXINT32))
+        graph = gen_ER_graph(p=p, n=n, seed=np.random.randint(0, MAXINT32))
+        # nx.generators.erdos_renyi_graph(n=n, p=p, seed=np.random.randint(0, MAXINT32))
     elif args['graph_mode'] == 'BA':
-        graph = nx.barabasi_albert_graph(n=n, m=m, seed=np.random.randint(0, MAXINT32))
+        graph = gen_BA_graph(m=m, n=n, seed=np.random.randint(0, MAXINT32))
+        # nx.barabasi_albert_graph(n=n, m=m, seed=np.random.randint(0, MAXINT32))
 
     dgraph = nx.DiGraph()
     dgraph.add_nodes_from(graph.nodes)

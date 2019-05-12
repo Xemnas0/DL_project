@@ -3,10 +3,12 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 
+def set_all_seeds(seed):
+    np.random.seed(seed)
+    random.seed(seed)
 
-def gen_ER_graph(p, n=None):
-    if n is None:
-        n = 32
+def gen_ER_graph(p, n=32, seed=0):
+    set_all_seeds(seed=seed)
     G = nx.Graph()
     nodes = range(n)
     G.add_nodes_from(nodes)
@@ -14,9 +16,8 @@ def gen_ER_graph(p, n=None):
     return G
 
 
-def gen_BA_graph(m, n=None):
-    if n is None:
-        n = 32
+def gen_BA_graph(m, n=32, seed=0):
+    set_all_seeds(seed=seed)
     G = nx.empty_graph(m)
     targets = list(range(m))
     repeated_nodes = []
@@ -28,9 +29,8 @@ def gen_BA_graph(m, n=None):
     return G
 
 
-def gen_WS_graph(k, p, n=None):
-    if n is None:
-        n = 32
+def gen_WS_graph(k, p, n=32, seed=0):
+    set_all_seeds(seed=seed)
     G = make_ring_lattice(k, n)
     G = rewire_ws(G, p)
     return G
@@ -101,4 +101,6 @@ def main():
     nx.draw_circular(G, with_labels=True)
     plt.show()
 
-main()
+if __name__ == '__main__':
+
+    main()

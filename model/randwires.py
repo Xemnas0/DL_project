@@ -180,16 +180,15 @@ class RandWireNN(keras.Model):
 
         dgraph = nx.DiGraph()
 
-        if self.regime == 'small':
-            dgraph.add_node('conv1', shape='rectangle')
-            dgraph.add_node('conv2', shape='rectangle')
-            dgraph.add_edge('conv1', 'conv2')
-        elif self.regime == 'regular':
-            dgraph.add_node('conv1', shape='rectangle')
+        dgraph.add_node('conv1', shape='rectangle')
+
+        random_layers = list(self.stages)
+        if self.regime == 'regular':
+            random_layers.insert(0, self.conv2)
 
         tot_nodes = 0
-        n_stages = len(self.stages)
-        for i, stage in enumerate(self.stages):
+        n_stages = len(random_layers)
+        for i, stage in enumerate(random_layers):
             stage_graph = stage.conv.graph
             start_node = stage.conv.start_node
             end_node = stage.conv.end_node
@@ -205,12 +204,8 @@ class RandWireNN(keras.Model):
                 dgraph.add_edge(u + c, v + c)
 
             if i == 0:
-                if self.regime == 'small':
-                    for node in start_node:
-                        dgraph.add_edge('conv2', node + c)
-                elif self.regime == 'regular':
-                    for node in start_node:
-                        dgraph.add_edge('conv1', node + c)
+                for node in start_node:
+                    dgraph.add_edge('conv1', node + c)
             elif i > 0:
                 for node in start_node:
                     dgraph.add_edge('output{}'.format(i-1), node + c)
@@ -226,7 +221,7 @@ class RandWireNN(keras.Model):
 
         pygraphviz_graph = nx.drawing.nx_agraph.to_agraph(dgraph)
         tot_nodes = 0
-        for i, stage in enumerate(self.stages):
+        for i, stage in enumerate(random_layers):
             stage_graph = stage.conv.graph
             start_node = stage.conv.start_node
             end_node = stage.conv.end_node
@@ -243,6 +238,7 @@ class RandWireNN(keras.Model):
         filename = self.get_filename() + '.png'
 
         pygraphviz_graph.draw(path=path + filename, prog='dot')
+        print('Model printed in file.')
 
     def get_filename(self):
         filename = None

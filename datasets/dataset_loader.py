@@ -16,11 +16,18 @@ EXISTING_DATASETS = ['MNIST', 'CIFAR10', 'CIFAR100', 'TINY_IMAGENET']
 
 def load_dataset(dataset_name):
 
-    assert dataset_name in EXISTING_DATASETS, f'Dataset name is not valid. Valid datasets: {EXISTING_DATASETS}'
+    assert dataset_name in EXISTING_DATASETS, 'Dataset name is not valid. Valid datasets: {}'.format(EXISTING_DATASETS)
 
     if dataset_name == 'MNIST':
         (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+
+        # with np.load('mnist.npz') as f:
+        #     x_train, y_train = f['x_train'], f['y_train']
+        #     x_test, y_test = f['x_test'], f['y_test']
+
         # Add color dimension
+
+
         x_train = x_train[..., np.newaxis]
         x_test = x_test[..., np.newaxis]
         x_train = x_train.astype('float32')
@@ -43,7 +50,7 @@ def load_dataset(dataset_name):
         x_train = x_train.astype('float32')
         x_test = x_test.astype('float32')
 
-    print(f'Dataset {dataset_name} loaded.')
+    print('Dataset {} loaded '.format(dataset_name))
 
     return (x_train, y_train), (x_test, y_test)
 

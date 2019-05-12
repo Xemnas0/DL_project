@@ -17,6 +17,6 @@ python3 -u main.py \
 --stages 1 \
 --learning-rate 1e-2 \
 --batch-size 32 \
---regime small \
---dataset MNIST \
+--regime 'small' \
+--dataset 'MNIST' \
 --distributed 0 \

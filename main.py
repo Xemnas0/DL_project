@@ -34,6 +34,7 @@ parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
 parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
+parser.add_argument('--distributed', type=bool, default=False)
 args = parser.parse_args()
 
 np.random.seed(args.seed)
@@ -42,28 +43,50 @@ np.random.seed(args.seed)
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
 
-    model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
-    # model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1).get_ready_model()
+    if not args.distributed:
+        model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
+        # model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1).get_ready_model()
 
-    # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
+        # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
-    optimizer = keras.optimizers.Adam(args.learning_rate)
+        optimizer = keras.optimizers.Adam(args.learning_rate)
 
-    model.build(input_shape=(None,) + x_train[0].shape)
-    model.summary()
+        model.build(input_shape=(None,) + x_train[0].shape)
+        model.summary()
 
-    model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
-                  metrics=[keras.metrics.sparse_categorical_accuracy])
+        model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
+                      metrics=[keras.metrics.sparse_categorical_accuracy])
 
-    # model.save_graph_image(path='./graph_images/')
+        # model.save_graph_image(path='./graph_images/')
+        history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
+        loss, acc = model.evaluate(x_test, y_test)
+        history['test_loss'] = loss
+        history['test_acc'] = acc
+    else:
+        mirrored_strategy = tf.distribute.MirroredStrategy()
+        with mirrored_strategy.scope():
+            model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
+            # model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1).get_ready_model()
 
-    history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
+            # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
+
+            optimizer = keras.optimizers.Adam(args.learning_rate)
+
+            model.build(input_shape=(None,) + x_train[0].shape)
+            model.summary()
+
+            model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
+                          metrics=[keras.metrics.sparse_categorical_accuracy])
+
+            # model.save_graph_image(path='./graph_images/')
+            history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
+
+            loss, acc = model.evaluate(x_test, y_test)
+            history['test_loss'] = loss
+            history['test_acc'] = acc
+
     results = history.history
 
-    loss, acc = model.evaluate(x_test, y_test)
-    history['test_loss'] = loss
-    history['test_acc'] = acc
-    
     filename = 'history_{0}_batchsize{1}_eta{2}_{3}'.format(args.dataset,
                                                         args.batch_size,
                                                         args.learning_rate,

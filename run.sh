@@ -19,3 +19,4 @@ python3 -u main.py \
 --batch-size 32 \
 --regime small \
 --dataset MNIST \
+--distributed 0 \

@@ -60,8 +60,6 @@ def main():
         # model.save_graph_image(path='./graph_images/')
         history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
         loss, acc = model.evaluate(x_test, y_test)
-        history['test_loss'] = loss
-        history['test_acc'] = acc
     else:
         mirrored_strategy = tf.distribute.MirroredStrategy()
         with mirrored_strategy.scope():
@@ -82,11 +80,10 @@ def main():
             history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
 
             loss, acc = model.evaluate(x_test, y_test)
-            history['test_loss'] = loss
-            history['test_acc'] = acc
 
     results = history.history
-
+    results['test_loss'] = loss
+    results['test_acc'] = acc
     filename = 'history_{0}_batchsize{1}_eta{2}_{3}'.format(args.dataset,
                                                         args.batch_size,
                                                         args.learning_rate,

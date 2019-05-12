@@ -156,7 +156,7 @@ class RandWireNN(keras.Model):
 
         for stage in range(args.stages):
             self.stages.append(
-                Triplet(channels=channels, name=f'conv{3+stage}', activation='relu', random=True, N=args.N,
+                Triplet(channels=channels, name='conv{}'.format(3+stage), activation='relu', random=True, N=args.N,
                         rand_args=self.random_args))
             channels *= 2
 
@@ -213,16 +213,16 @@ class RandWireNN(keras.Model):
                         dgraph.add_edge('conv1', node + c)
             elif i > 0:
                 for node in start_node:
-                    dgraph.add_edge(f'output{i-1}', node + c)
+                    dgraph.add_edge('output{}'.format(i-1), node + c)
 
-            dgraph.add_node(f'output{i}', color='orange', style='filled', label='')
+            dgraph.add_node('output{}'.format(i), color='orange', style='filled', label='')
 
             for node in end_node:
-                dgraph.add_edge(node + c, f'output{i}')
+                dgraph.add_edge(node + c, 'output{}'.format(i))
 
             if i == n_stages - 1:
                 dgraph.add_node('classifier', shape='rectangle')
-                dgraph.add_edge(f'output{i}', 'classifier')
+                dgraph.add_edge('output{}'.format(i), 'classifier')
 
         pygraphviz_graph = nx.drawing.nx_agraph.to_agraph(dgraph)
         tot_nodes = 0

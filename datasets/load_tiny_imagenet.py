@@ -29,7 +29,7 @@ def read_image(path):
 
     return image
 
-def save_to_file(X_train, y_train, X_val, y_val, X_test):
+def save_to_file(X_train, y_train, X_val, y_val):
     np.savez(SAVE_PATH, X_train=X_train, y_train=y_train,
              X_val=X_val, y_val=y_val)
 

@@ -40,8 +40,38 @@ args = parser.parse_args()
 np.random.seed(args.seed)
 
 
+def create_aug_gen(in_gen, image_gen):
+    for in_x, in_y in in_gen:
+        g_x = image_gen.flow(255 * in_x, in_y,
+                             batch_size=in_x.shape[0])
+        x, y = next(g_x)
+
+        yield x / 255.0, y
+
+
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
+
+    n_val = x_train.shape[0] // 10
+    x_val = x_train[:n_val]
+    x_train = x_train[n_val:]
+    y_val = y_train[:n_val]
+    y_train = y_train[n_val:]
+
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    train_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
+
+    image_gen = ImageDataGenerator(rotation_range=15,
+                                   width_shift_range=0.1,
+                                   height_shift_range=0.1,
+                                   shear_range=0.01,
+                                   zoom_range=[0.9, 1.25],
+                                   horizontal_flip=True,
+                                   vertical_flip=False,
+                                   fill_mode='reflect',
+                                   data_format='channels_last',
+                                   brightness_range=[0.5, 1.5])
+    cur_gen = create_aug_gen(train_dataset, image_gen)
 
     if not args.distributed:
         model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
@@ -57,8 +87,10 @@ def main():
         model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
                       metrics=[keras.metrics.sparse_categorical_accuracy])
 
-        model.save_graph_image(path='./graph_images/')
-        history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
+        # model.save_graph_image(path='./graph_images/')
+        history = model.fit_generator(cur_gen, steps_per_epoch=args.batch_size, epochs=args.epochs,
+                                      validation_data=(x_val, y_val))
+        # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
         loss, acc = model.evaluate(x_test, y_test)
     else:
         mirrored_strategy = tf.distribute.MirroredStrategy()
@@ -85,13 +117,14 @@ def main():
     results['test_loss'] = loss
     results['test_acc'] = acc
     filename = 'history_{0}_batchsize{1}_eta{2}_{3}'.format(args.dataset,
-                                                        args.batch_size,
-                                                        args.learning_rate,
-                                                        model.get_filename())
+                                                            args.batch_size,
+                                                            args.learning_rate,
+                                                            model.get_filename())
 
-    pickle_out = open(filename+".pickle","wb")
+    pickle_out = open(filename + ".pickle", "wb")
     pickle.dump(results, pickle_out)
     pickle_out.close()
+
 
 if __name__ == '__main__':
     main()

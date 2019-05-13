@@ -116,10 +116,11 @@ def main():
     results = history.history
     results['test_loss'] = loss
     results['test_acc'] = acc
-    filename = 'history_{0}_batchsize{1}_eta{2}_{3}'.format(args.dataset,
-                                                            args.batch_size,
-                                                            args.learning_rate,
-                                                            model.get_filename())
+    filename = 'history_epochs{4}_{0}_batchsize{1}_eta{2}_{3}'.format(args.dataset,
+                                                                      args.batch_size,
+                                                                      args.learning_rate,
+                                                                      model.get_filename(),
+                                                                      args.epochs)
 
     pickle_out = open(filename + ".pickle", "wb")
     pickle.dump(results, pickle_out)

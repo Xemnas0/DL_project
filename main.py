@@ -122,6 +122,10 @@ def main():
                                                                       model.get_filename(),
                                                                       args.epochs)
 
+    
+
+    print('test loss is {} and acc is {}'.format(loss, acc))
+
     pickle_out = open(filename + ".pickle", "wb")
     pickle.dump(results, pickle_out)
     pickle_out.close()

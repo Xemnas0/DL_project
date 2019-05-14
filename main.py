@@ -32,9 +32,12 @@ parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning 
 parser.add_argument('--batch-size', type=int, default=32, help='Batch size. (default: --)')
 parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
-parser.add_argument('--dataset', type=str, default="MNIST",
+parser.add_argument('--dataset', type=str, default="CIFAR100",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
 parser.add_argument('--distributed', type=bool, default=False)
+parser.add_argument('--augmented', type=bool, default=True)
+
+
 args = parser.parse_args()
 
 np.random.seed(args.seed)
@@ -52,25 +55,11 @@ def create_aug_gen(in_gen, image_gen):
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
 
-    n_val = x_train.shape[0] // 10
-    x_val = x_train[:n_val]
-    x_train = x_train[n_val:]
-    y_val = y_train[:n_val]
-    y_train = y_train[n_val:]
+
 
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     train_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
 
-    image_gen = ImageDataGenerator(rotation_range=15,
-                                   width_shift_range=0.1,
-                                   height_shift_range=0.1,
-                                   shear_range=0.01,
-                                   zoom_range=[0.9, 1.25],
-                                   horizontal_flip=True,
-                                   vertical_flip=False,
-                                   fill_mode='reflect',
-                                   data_format='channels_last',
-                                   brightness_range=[0.5, 1.5])
     # cur_gen = create_aug_gen(train_dataset, image_gen)
 
     if not args.distributed:
@@ -90,11 +79,30 @@ def main():
 
         # model.save_graph_image(path='./graph_images/')
 
-        history = model.fit_generator(image_gen.flow(x_train, y_train, batch_size=args.batch_size),
-                                      steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size), epochs=args.epochs,
-                                      validation_data=(x_val, y_val))
+        if args.augmented:
 
-        # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
+            n_val = x_train.shape[0] // 10
+            x_val = x_train[:n_val]
+            x_train = x_train[n_val:]
+            y_val = y_train[:n_val]
+            y_train = y_train[n_val:]
+
+            image_gen = ImageDataGenerator(rotation_range=15,
+                                           width_shift_range=0.1,
+                                           height_shift_range=0.1,
+                                           shear_range=0.01,
+                                           zoom_range=[0.9, 1.25],
+                                           horizontal_flip=True,
+                                           vertical_flip=False,
+                                           fill_mode='reflect',
+                                           data_format='channels_last',
+                                           brightness_range=[0.5, 1.5])
+
+            history = model.fit_generator(image_gen.flow(x_train, y_train, batch_size=args.batch_size),
+                                          steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size), epochs=args.epochs,
+                                          validation_data=(x_val, y_val))
+        else:
+            history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
 
         loss, acc = model.evaluate(x_test, y_test)
     else:

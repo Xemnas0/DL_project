@@ -79,7 +79,7 @@ def main():
 
         # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
-        optimizer = keras.optimizers.Adam(args.learning_rate)
+        optimizer = keras.optimizers.Adam(args.learning_rate, decay=0.99)
 
         model.build(input_shape=(None,) + x_train[0].shape)
         model.summary()
@@ -88,7 +88,7 @@ def main():
                       metrics=[keras.metrics.sparse_categorical_accuracy])
 
         # model.save_graph_image(path='./graph_images/')
-        history = model.fit_generator(cur_gen, steps_per_epoch=args.batch_size, epochs=args.epochs,
+        history = model.fit_generator(cur_gen, steps_per_epoch=x_train.shape[0] // args.batch_size, epochs=args.epochs,
                                       validation_data=(x_val, y_val))
         # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
         loss, acc = model.evaluate(x_test, y_test)

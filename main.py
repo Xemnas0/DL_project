@@ -13,11 +13,13 @@ import numpy as np
 from model.resnets import ResNet
 import pickle
 
+from utils import plot
+
 parser = argparse.ArgumentParser('parameters')
 
-parser.add_argument('--epochs', type=int, default=1, help='Number of epochs. (default: 100)')
+parser.add_argument('--epochs', type=int, default=3, help='Number of epochs. (default: 100)')
 parser.add_argument('--P', type=float, default=0.75, help='Graph edge probability. (default: 0.75)')
-parser.add_argument('--C', type=int, default=32,
+parser.add_argument('--C', type=int, default=8,
                     help='Number of channels. (default: --)')
 parser.add_argument('--K', type=int, default=4,
                     help='Each node is connected to k nearest neighbors in ring topology. (default: 4)')
@@ -26,16 +28,18 @@ parser.add_argument('--M', type=int, default=1,
 parser.add_argument('--seed', type=int, default=0, help='Random seed initializer.')
 parser.add_argument('--graph-mode', type=str, default="WS",
                     help="Random graph family. [ER, WS, BA] (default: WS)")
-parser.add_argument('--N', type=int, default=32, help="Number of graph node. (default: 32)")
-parser.add_argument('--stages', type=int, default=3, help='Number of random layers. (default: 1)')
+parser.add_argument('--N', type=int, default=8, help="Number of graph node. (default: 32)")
+parser.add_argument('--stages', type=int, default=1, help='Number of random layers. (default: 1)')
 parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning rate. (default: --)')
-parser.add_argument('--batch-size', type=int, default=32, help='Batch size. (default: --)')
+parser.add_argument('--batch-size', type=int, default=200, help='Batch size. (default: --)')
 parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
-parser.add_argument('--dataset', type=str, default="CIFAR100",
+parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
 parser.add_argument('--distributed', type=bool, default=False)
 parser.add_argument('--augmented', type=bool, default=True)
+parser.add_argument('--decay', type=float, default=0)
+parser.add_argument('--stride', type=int, default=2)
 
 
 args = parser.parse_args()
@@ -55,8 +59,6 @@ def create_aug_gen(in_gen, image_gen):
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
 
-
-
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     train_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
 
@@ -69,7 +71,7 @@ def main():
         # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
         # optimizer = keras.optimizers.Adam(args.learning_rate, decay=0.99)
-        optimizer = keras.optimizers.SGD(lr=args.learning_rate, momentum=0.9, decay=0, nesterov=True)
+        optimizer = keras.optimizers.SGD(lr=args.learning_rate, momentum=0.9, decay=args.decay, nesterov=True)
 
         model.build(input_shape=(None,) + x_train[0].shape)
         model.summary()
@@ -127,14 +129,23 @@ def main():
             loss, acc = model.evaluate(x_test, y_test)
 
     results = history.history
-    results['test_loss'] = loss
-    results['test_acc'] = acc
+
+
     filename = 'history_epochs{4}_{0}_batchsize{1}_eta{2}_{3}'.format(args.dataset,
                                                                       args.batch_size,
                                                                       str(args.learning_rate).replace('.', '_'),
                                                                       model.get_filename(),
                                                                       args.epochs)
 
+    results['test_loss'] = loss
+    results['test_acc'] = acc
+
+    plot(results['loss'], results['val_loss'], metric='loss', title='Loss on train and validation data',
+         save_name=filename +"loss.png")
+
+    plot(results['sparse_categorical_accuracy'],
+         results['val_sparse_categorical_accuracy'],
+         metric='accuracy', title='Accuracy on train and validation data', save_name=filename + "acc.png")
 
 
     print('test loss is {} and acc is {}'.format(loss, acc))

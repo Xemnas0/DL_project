@@ -41,7 +41,7 @@ class RandLayer(keras.layers.Layer):
 
         for node in self.graph_order:
             if node in self.start_node:
-                self.triplets[node] = Triplet(channels=channels, activation=None, strides=1)
+                self.triplets[node] = Triplet(channels=channels, activation=None, strides=random_args['stride'])
             else:
                 in_degree = self.graph.in_degree[node]
                 if in_degree > 1:
@@ -138,7 +138,8 @@ class RandWireNN(keras.Model):
         self.n_classes = n_classes
         self.random_args = {'n': args.N, 'p': args.P, 'k': args.K, 'm': args.M, 'seed': args.seed,
                             'regime': args.regime,
-                            'graph_mode': args.graph_mode}
+                            'graph_mode': args.graph_mode,
+                            'stride': args.stride}
 
         self.stages = []
         self.regime = args.regime
@@ -147,7 +148,7 @@ class RandWireNN(keras.Model):
         if args.regime == 'small':
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)
-            self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False, strides=1)
+            self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False, strides=args.stride)
         elif args.regime == 'regular':
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)

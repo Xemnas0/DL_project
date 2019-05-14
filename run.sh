@@ -20,3 +20,5 @@ python3 -u main.py \
   --regime 'small' \
   --dataset 'CIFAR100' \
   --augmented 'False' \
+  --decay 0 \
+  --stride 1 \

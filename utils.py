@@ -51,6 +51,26 @@ def get_graph(args, n):
     return dgraph, sorted, in_node, out_node
 
 
+def plot(train, val, metric, title, save_name=None):
+    # fig config
+    fig = plt.figure()
+    plt.grid(True)
+    epochs = np.arange(0, len(train), 1)
+
+    plt.title(title)
+    plt.plot(epochs, train, color='r')
+    plt.plot(epochs, val, color='b')
+    plt.xlabel('epochs')
+    plt.ylabel(metric)
+    plt.legend(["train {}".format(metric), "validation {}".format(metric)])
+
+    if save_name is None:
+        plt.show()
+    else:
+        fig.savefig(save_name)
+        plt.close(fig)
+
+
 if __name__ == '__main__':
     n = 16
     K = 4

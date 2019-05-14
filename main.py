@@ -15,7 +15,7 @@ import pickle
 
 parser = argparse.ArgumentParser('parameters')
 
-parser.add_argument('--epochs', type=int, default=1, help='Number of epochs. (default: 100)')
+parser.add_argument('--epochs', type=int, default=2, help='Number of epochs. (default: 100)')
 parser.add_argument('--P', type=float, default=0.75, help='Graph edge probability. (default: 0.75)')
 parser.add_argument('--C', type=int, default=32,
                     help='Number of channels. (default: --)')
@@ -30,7 +30,7 @@ parser.add_argument('--N', type=int, default=32, help="Number of graph node. (de
 parser.add_argument('--stages', type=int, default=3, help='Number of random layers. (default: 1)')
 parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning rate. (default: --)')
 parser.add_argument('--batch-size', type=int, default=32, help='Batch size. (default: --)')
-parser.add_argument('--regime', type=str, default="regular",
+parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
 parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
@@ -88,7 +88,7 @@ def main():
                       metrics=[keras.metrics.sparse_categorical_accuracy])
 
         # model.save_graph_image(path='./graph_images/')
-        history = model.fit_generator(cur_gen, steps_per_epoch=x_train.shape[0] // args.batch_size, epochs=args.epochs,
+        history = model.fit_generator(cur_gen, steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size), epochs=args.epochs,
                                       validation_data=(x_val, y_val))
         # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
         loss, acc = model.evaluate(x_test, y_test)
@@ -122,7 +122,7 @@ def main():
                                                                       model.get_filename(),
                                                                       args.epochs)
 
-    
+
 
     print('test loss is {} and acc is {}'.format(loss, acc))
 

@@ -6,17 +6,17 @@ if [ ! -f main.py ]; then
 fi;
 
 python3 -u main.py \
-  --epochs 5 \
+  --epochs 100 \
   --P 0.75 \
-  --C 32 \
+  --C 78 \
   --K 4 \
   --M 1 \
   --seed 0 \
-  --graph-mode WS \
+  --graph-mode 'WS' \
   --N 32 \
-  --stages 1 \
-  --learning-rate 0.001 \
-  --batch-size 32 \
+  --stages 3 \
+  --learning-rate 0.1 \
+  --batch-size 100 \
   --regime 'small' \
-  --dataset 'MNIST' \
-  --distributed 1 \
+  --dataset 'CIFAR100' \
+  --augmented 'False' \

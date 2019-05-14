@@ -69,7 +69,7 @@ def main():
         # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
         # optimizer = keras.optimizers.Adam(args.learning_rate, decay=0.99)
-        optimizer = keras.optimizers.SGD(lr=args.learning_rate, momentum=0.9, decay=0.99, nesterov=True)
+        optimizer = keras.optimizers.SGD(lr=args.learning_rate, momentum=0.9, decay=0, nesterov=True)
 
         model.build(input_shape=(None,) + x_train[0].shape)
         model.summary()

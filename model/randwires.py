@@ -10,7 +10,7 @@ from utils import get_graph
 import numpy as np
 import os
 
-WEIGHT_DECAY = 5e-5
+WEIGHT_DECAY = 1e-4
 
 
 class Aggregation(keras.layers.Layer):
@@ -41,7 +41,7 @@ class RandLayer(keras.layers.Layer):
 
         for node in self.graph_order:
             if node in self.start_node:
-                self.triplets[node] = Triplet(channels=channels, activation=None, strides=2)
+                self.triplets[node] = Triplet(channels=channels, activation=None, strides=1)
             else:
                 in_degree = self.graph.in_degree[node]
                 if in_degree > 1:
@@ -147,7 +147,7 @@ class RandWireNN(keras.Model):
         if args.regime == 'small':
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)
-            self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False, strides=2)
+            self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False, strides=1)
         elif args.regime == 'regular':
             self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
                                  input_shape=input_shape)

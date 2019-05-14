@@ -79,7 +79,8 @@ def main():
 
         # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
-        optimizer = keras.optimizers.Adam(args.learning_rate, decay=0.99)
+        # optimizer = keras.optimizers.Adam(args.learning_rate, decay=0.99)
+        optimizer = keras.optimizers.SGD(learning_rate=args.learning_rate, momentum=0.9, nesterov=True)
 
         model.build(input_shape=(None,) + x_train[0].shape)
         model.summary()
@@ -94,7 +95,7 @@ def main():
                                       validation_data=(x_val, y_val))
 
         # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
-        
+
         loss, acc = model.evaluate(x_test, y_test)
     else:
         mirrored_strategy = tf.distribute.MirroredStrategy()

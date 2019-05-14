@@ -30,7 +30,7 @@ parser.add_argument('--N', type=int, default=32, help="Number of graph node. (de
 parser.add_argument('--stages', type=int, default=3, help='Number of random layers. (default: 1)')
 parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning rate. (default: --)')
 parser.add_argument('--batch-size', type=int, default=32, help='Batch size. (default: --)')
-parser.add_argument('--regime', type=str, default="regular",
+parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
 parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
@@ -71,7 +71,7 @@ def main():
                                    fill_mode='reflect',
                                    data_format='channels_last',
                                    brightness_range=[0.5, 1.5])
-    # cur_gen = create_aug_gen(zip(x_train, y_train), image_gen)
+    cur_gen = create_aug_gen(train_dataset, image_gen)
 
     if not args.distributed:
         model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
@@ -88,8 +88,7 @@ def main():
                       metrics=[keras.metrics.sparse_categorical_accuracy])
 
         # model.save_graph_image(path='./graph_images/')
-        history = model.fit_generator(image_gen.flow(x_train, y_train, batch_size=args.batch_size),
-                                      steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size), epochs=args.epochs,
+        history = model.fit_generator(cur_gen, steps_per_epoch=x_train.shape[0] // args.batch_size, epochs=args.epochs,
                                       validation_data=(x_val, y_val))
         # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
         loss, acc = model.evaluate(x_test, y_test)
@@ -122,6 +121,10 @@ def main():
                                                                       str(args.learning_rate).replace('.', '_'),
                                                                       model.get_filename(),
                                                                       args.epochs)
+
+
+
+    print('test loss is {} and acc is {}'.format(loss, acc))
 
     pickle_out = open(filename + ".pickle", "wb")
     pickle.dump(results, pickle_out)

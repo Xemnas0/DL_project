@@ -46,6 +46,11 @@ args = parser.parse_args()
 
 np.random.seed(args.seed)
 
+early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss',
+                              min_delta=0,
+                              patience=5,
+                              verbose=0, mode='auto')
+
 
 def create_aug_gen(in_gen, image_gen):
     for in_x, in_y in in_gen:
@@ -102,9 +107,10 @@ def main():
 
             history = model.fit_generator(image_gen.flow(x_train, y_train, batch_size=args.batch_size),
                                           steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size), epochs=args.epochs,
-                                          validation_data=(x_val, y_val))
+                                          validation_data=(x_val, y_val), callbacks=[early_stopping])
         else:
-            history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
+            # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
+            history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1, callbacks=[early_stopping])
 
         loss, acc = model.evaluate(x_test, y_test)
     else:

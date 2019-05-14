@@ -71,7 +71,7 @@ def main():
                                    fill_mode='reflect',
                                    data_format='channels_last',
                                    brightness_range=[0.5, 1.5])
-    cur_gen = create_aug_gen(train_dataset, image_gen)
+    # cur_gen = create_aug_gen(train_dataset, image_gen)
 
     if not args.distributed:
         model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
@@ -88,9 +88,13 @@ def main():
                       metrics=[keras.metrics.sparse_categorical_accuracy])
 
         # model.save_graph_image(path='./graph_images/')
-        history = model.fit_generator(cur_gen, steps_per_epoch=x_train.shape[0] // args.batch_size, epochs=args.epochs,
+
+        history = model.fit_generator(image_gen.flow(x_train, y_train, batch_size=args.batch_size),
+                                      steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size), epochs=args.epochs,
                                       validation_data=(x_val, y_val))
+
         # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
+        
         loss, acc = model.evaluate(x_test, y_test)
     else:
         mirrored_strategy = tf.distribute.MirroredStrategy()

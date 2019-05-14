@@ -46,10 +46,8 @@ args = parser.parse_args()
 
 np.random.seed(args.seed)
 
-early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss',
-                              min_delta=0,
-                              patience=5,
-                              verbose=0, mode='auto')
+early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5,
+                              verbose=0, mode='auto', restore_best_weights=True)
 
 
 def create_aug_gen(in_gen, image_gen):

@@ -24,7 +24,6 @@ class MyCosineDecayLearningRate(keras.callbacks.Callback):
         self.update_type = update_type
         self.n_batches = n_batches
 
-    # # TODO: change to on_batch_begin
     def on_epoch_begin(self, epoch, logs=None):
         self.epoch = epoch
         if not hasattr(self.model.optimizer, 'lr'):

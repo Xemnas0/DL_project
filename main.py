@@ -18,7 +18,7 @@ from utils import plot
 
 parser = argparse.ArgumentParser('parameters')
 
-parser.add_argument('--epochs', type=int, default=200, help='Number of epochs. (default: 100)')
+parser.add_argument('--epochs', type=int, default=100, help='Number of epochs. (default: 100)')
 parser.add_argument('--P', type=float, default=0.75, help='Graph edge probability. (default: 0.75)')
 parser.add_argument('--C', type=int, default=8,
                     help='Number of channels. (default: --)')
@@ -39,7 +39,7 @@ parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
 parser.add_argument('--augmented', type=bool, default=True)
 parser.add_argument('--stride', type=int, default=2)
-parser.add_argument('--lr_period', type=int, default=150, help='Learning rate decay period. (default: 150)')
+parser.add_argument('--lr_period', type=int, default=10, help='Learning rate decay period. (default: 150)')
 parser.add_argument('--min_lr', type=float, default=1e-5, help='Learning rate decay period. (default: 150)')
 parser.add_argument('--update_type_lr', type=str, default='batch',
                     help='Cycle counted either over \'epoch\' or \'batch\'. (default: batch)')
@@ -54,7 +54,8 @@ def main():
 
     lr_decay = MyCosineDecayLearningRate(initial_lr=args.learning_rate, T_cycle=args.lr_period, min_lr=args.min_lr,
                                          update_type=args.update_type_lr,
-                                         n_batches=np.ceil(x_train.shape[0] / args.batch_size))
+                                         n_batches=np.ceil(x_train.shape[0] / args.batch_size),
+                                         n_epochs= args.epochs)
     early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5,
                                                    verbose=0, mode='auto', restore_best_weights=True)
     callbacks = [lr_decay]

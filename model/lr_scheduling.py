@@ -12,9 +12,9 @@ class MyCosineDecayLearningRate(keras.callbacks.Callback):
             as inputs and returns a new learning rate as output (float).
     """
 
-    def __init__(self, initial_lr, T_cycle, min_lr, n_batches, update_type='batch'):
+    def __init__(self, initial_lr, T_cycle, min_lr, n_batches, n_epochs, update_type='batch'):
         super(MyCosineDecayLearningRate, self).__init__()
-        self.initial_lr = initial_lr
+        self.max_lr_curr = initial_lr
         self.all_lr = []
         self.epoch = None
         self.T_cycle = T_cycle
@@ -23,6 +23,9 @@ class MyCosineDecayLearningRate(keras.callbacks.Callback):
         self.max_batch_index = 0
         self.update_type = update_type
         self.n_batches = n_batches
+        self.n_cycles = np.ceil((self.n_batches * n_epochs) / T_cycle)
+        self.max_lr_schedule = np.linspace(start=initial_lr, stop=self.min_lr*100, num=self.n_cycles+1)
+        self.cycle = 0
 
     def on_epoch_begin(self, epoch, logs=None):
         self.epoch = epoch
@@ -46,8 +49,13 @@ class MyCosineDecayLearningRate(keras.callbacks.Callback):
             self.all_lr.append(scheduled_lr)
 
     def lr_schedule(self, t):
-        T_current = t % self.T_cycle
-        T_current = self.scaled_Tcurrent[T_current]
+        indT_current = t % self.T_cycle
+        T_current = self.scaled_Tcurrent[indT_current]
 
-        lr = self.min_lr + 0.5 * (self.initial_lr - self.min_lr) * (1 + np.cos(T_current * np.pi / self.T_cycle))
+        lr = self.min_lr + 0.5 * (self.max_lr_curr - self.min_lr) * (1 + np.cos(T_current * np.pi / self.T_cycle))
+
+        if indT_current == self.T_cycle - 1:
+            self.cycle += 1
+            self.max_lr_curr = self.max_lr_schedule[self.cycle]
+
         return lr

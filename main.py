@@ -49,6 +49,7 @@ np.random.seed(args.seed)
 early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5,
                               verbose=0, mode='auto', restore_best_weights=True)
 
+callbacks = []
 
 def create_aug_gen(in_gen, image_gen):
     for in_x, in_y in in_gen:
@@ -61,7 +62,8 @@ def create_aug_gen(in_gen, image_gen):
 
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
-
+    # x_train = x_train[:1000]
+    # y_train = y_train[:1000]
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     train_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
 
@@ -73,7 +75,7 @@ def main():
 
         # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
-        # optimizer = keras.optimizers.Adam(args.learning_rate, decay=0.99)
+        # optimizer = keras.optimizers.Adam(args.learning_rate, decay=args.decay)
         optimizer = keras.optimizers.SGD(lr=args.learning_rate, momentum=0.9, decay=args.decay, nesterov=True)
 
         model.build(input_shape=(None,) + x_train[0].shape)
@@ -85,7 +87,7 @@ def main():
         # model.save_graph_image(path='./graph_images/')
 
         if args.augmented:
-
+            print('In augmented')
             n_val = x_train.shape[0] // 10
             x_val = x_train[:n_val]
             x_train = x_train[n_val:]
@@ -105,10 +107,10 @@ def main():
 
             history = model.fit_generator(image_gen.flow(x_train, y_train, batch_size=args.batch_size),
                                           steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size), epochs=args.epochs,
-                                          validation_data=(x_val, y_val), callbacks=[early_stopping])
+                                          validation_data=(x_val, y_val), callbacks=callbacks)
         else:
             # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
-            history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1, callbacks=[early_stopping])
+            history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1, callbacks=callbacks)
 
         loss, acc = model.evaluate(x_test, y_test)
     else:

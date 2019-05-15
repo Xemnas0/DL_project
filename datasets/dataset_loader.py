@@ -1,8 +1,8 @@
 import os
 
 import tensorflow_datasets as tfds
-from keras.datasets.cifar import load_batch
 from tensorflow.python import keras
+from tensorflow.python.keras.datasets.cifar import load_batch
 import tensorflow as tf
 import numpy as np
 

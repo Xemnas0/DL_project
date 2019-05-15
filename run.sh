@@ -8,17 +8,17 @@ fi;
 python3 -u main.py \
   --epochs 100 \
   --P 0.75 \
-  --C 78 \
+  --C 64 \
   --K 4 \
   --M 1 \
   --seed 0 \
   --graph-mode 'WS' \
   --N 32 \
-  --stages 3 \
+  --stages 2 \
   --learning-rate 0.1 \
-  --batch-size 100 \
+  --batch-size 128 \
   --regime 'small' \
-  --dataset 'CIFAR100' \
-  --augmented 'False' \
-  --decay 0 \
-  --stride 1 \
+  --dataset 'CIFAR10' \
+  --augmented 1 \
+  --decay 5e-9 \
+  --stride 1

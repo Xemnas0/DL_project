@@ -40,7 +40,7 @@ parser.add_argument('--dataset', type=str, default="MNIST",
 parser.add_argument('--augmented', type=bool, default=True)
 parser.add_argument('--stride', type=int, default=2)
 parser.add_argument('--lr_period', type=int, default=150, help='Learning rate decay period. (default: 150)')
-parser.add_argument('--min_lr', type=int, default=1e-5, help='Learning rate decay period. (default: 150)')
+parser.add_argument('--min_lr', type=float, default=1e-5, help='Learning rate decay period. (default: 150)')
 parser.add_argument('--update_type_lr', type=str, default='batch',
                     help='Cycle counted either over \'epoch\' or \'batch\'. (default: batch)')
 

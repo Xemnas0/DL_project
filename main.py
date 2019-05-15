@@ -10,7 +10,7 @@ from tqdm import tqdm
 import argparse
 import numpy as np
 
-from model.lr_scheduling import MyLearningRateScheduler
+from model.lr_scheduling import MyLearningRateScheduler, lr_schedule
 from model.resnets import ResNet
 import pickle
 
@@ -53,7 +53,8 @@ early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, 
 
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
-
+    # x_train = x_train[:1000]
+    # y_train = y_train[:1000]
     lr_decay = MyLearningRateScheduler(lr_schedule, initial_lr=args.learning_rate)
 
     callbacks = [lr_decay]

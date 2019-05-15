@@ -10,15 +10,15 @@ from tqdm import tqdm
 import argparse
 import numpy as np
 
-from model.lr_scheduling import MyLearningRateScheduler, lr_schedule
+from model.lr_scheduling import MyCosineDecayLearningRate
 from model.resnets import ResNet
 import pickle
-
+import matplotlib.pyplot as plt
 from utils import plot
 
 parser = argparse.ArgumentParser('parameters')
 
-parser.add_argument('--epochs', type=int, default=3, help='Number of epochs. (default: 100)')
+parser.add_argument('--epochs', type=int, default=200, help='Number of epochs. (default: 100)')
 parser.add_argument('--P', type=float, default=0.75, help='Graph edge probability. (default: 0.75)')
 parser.add_argument('--C', type=int, default=8,
                     help='Number of channels. (default: --)')
@@ -32,30 +32,28 @@ parser.add_argument('--graph-mode', type=str, default="WS",
 parser.add_argument('--N', type=int, default=8, help="Number of graph node. (default: 32)")
 parser.add_argument('--stages', type=int, default=1, help='Number of random layers. (default: 1)')
 parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning rate. (default: --)')
-parser.add_argument('--batch-size', type=int, default=200, help='Batch size. (default: --)')
+parser.add_argument('--batch-size', type=int, default=128, help='Batch size. (default: --)')
 parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
 parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
 parser.add_argument('--distributed', type=bool, default=False)
 parser.add_argument('--augmented', type=bool, default=True)
-parser.add_argument('--decay', type=float, default=0)
 parser.add_argument('--stride', type=int, default=2)
-
 
 args = parser.parse_args()
 
 np.random.seed(args.seed)
 
 early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5,
-                              verbose=0, mode='auto', restore_best_weights=True)
+                                               verbose=0, mode='auto', restore_best_weights=True)
 
 
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
-    # x_train = x_train[:1000]
-    # y_train = y_train[:1000]
-    lr_decay = MyLearningRateScheduler(lr_schedule, initial_lr=args.learning_rate)
+
+    lr_decay = MyCosineDecayLearningRate(initial_lr=args.learning_rate, T_cycle=150, min_lr=1e-5, update_type='batch',
+                                         n_batches=np.ceil(x_train.shape[0] / args.batch_size))
 
     callbacks = [lr_decay]
 
@@ -66,7 +64,7 @@ def main():
         # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
 
         # optimizer = keras.optimizers.Adam(args.learning_rate, decay=args.decay)
-        optimizer = keras.optimizers.SGD(lr=args.learning_rate, momentum=0.9, decay=args.decay, nesterov=True)
+        optimizer = keras.optimizers.SGD(lr=args.learning_rate, momentum=0.9, nesterov=True)
 
         model.build(input_shape=(None,) + x_train[0].shape)
         model.summary()
@@ -96,7 +94,8 @@ def main():
                                            brightness_range=[0.5, 1.5])
 
             history = model.fit_generator(image_gen.flow(x_train, y_train, batch_size=args.batch_size),
-                                          steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size), epochs=args.epochs,
+                                          steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size),
+                                          epochs=args.epochs,
                                           validation_data=(x_val, y_val), callbacks=callbacks)
         else:
             # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
@@ -136,14 +135,17 @@ def main():
     results['test_acc'] = acc
 
     plot(results['loss'], results['val_loss'], metric='loss', title='Loss on train and validation data',
-         save_name=filename +"loss.png")
+         save_name=filename + "loss.png")
 
     plot(results['sparse_categorical_accuracy'],
          results['val_sparse_categorical_accuracy'],
          metric='accuracy', title='Accuracy on train and validation data', save_name=filename + "acc.png")
 
-
     print('test loss is {} and acc is {}'.format(loss, acc))
+
+    plt.plot(lr_decay.all_lr)
+    plt.title('Learning rate')
+    plt.show()
 
     pickle_out = open(filename + ".pickle", "wb")
     pickle.dump(results, pickle_out)

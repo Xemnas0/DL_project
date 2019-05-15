@@ -10,6 +10,7 @@ from tqdm import tqdm
 import argparse
 import numpy as np
 
+from model.lr_scheduling import MyLearningRateScheduler
 from model.resnets import ResNet
 import pickle
 
@@ -49,25 +50,13 @@ np.random.seed(args.seed)
 early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5,
                               verbose=0, mode='auto', restore_best_weights=True)
 
-callbacks = []
-
-def create_aug_gen(in_gen, image_gen):
-    for in_x, in_y in in_gen:
-        g_x = image_gen.flow(255 * in_x, in_y,
-                             batch_size=in_x.shape[0])
-        x, y = next(g_x)
-
-        yield x / 255.0, y
-
 
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
-    # x_train = x_train[:1000]
-    # y_train = y_train[:1000]
-    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-    train_dataset = train_dataset.shuffle(buffer_size=1024).batch(args.batch_size)
 
-    # cur_gen = create_aug_gen(train_dataset, image_gen)
+    lr_decay = MyLearningRateScheduler(lr_schedule, initial_lr=args.learning_rate)
+
+    callbacks = [lr_decay]
 
     if not args.distributed:
         model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
@@ -135,7 +124,6 @@ def main():
             loss, acc = model.evaluate(x_test, y_test)
 
     results = history.history
-
 
     filename = 'history_epochs{4}_{0}_batchsize{1}_eta{2}_{3}'.format(args.dataset,
                                                                       args.batch_size,

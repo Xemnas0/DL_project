@@ -5,12 +5,13 @@ if [ ! -f main.py ]; then
     exit 1
 fi;
 
+
 python3 -u main.py \
   --epochs 100 \
   --P 0.2 \
-  --C 78 \
+  --C 64 \
   --K 4 \
-  --M 1 \
+  --M 5 \
   --seed 0 \
   --graph-mode 'ER' \
   --N 32 \
@@ -18,10 +19,9 @@ python3 -u main.py \
   --learning-rate 0.1 \
   --batch-size 128 \
   --regime 'small' \
-  --dataset 'CIFAR100' \
+  --dataset 'CIFAR10' \
   --augmented 1 \
-  --decay 5e-9 \
   --stride 1 \
-  --lr_period 50 \
-  --min_lr 1e-6 \
+  --lr_period 2000 \
+  --min_lr 0.000001 \
   --update_type_lr 'batch'

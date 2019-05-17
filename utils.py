@@ -14,7 +14,6 @@ MAXINT32 = 4294967295 // 10
 
 
 def get_graph(args, n):
-    np.random.seed(args['seed'])
     k = args['k']
     p = args['p']
     m = args['m']

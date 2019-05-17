@@ -24,13 +24,13 @@ parser.add_argument('--C', type=int, default=8,
                     help='Number of channels. (default: --)')
 parser.add_argument('--K', type=int, default=4,
                     help='Each node is connected to k nearest neighbors in ring topology. (default: 4)')
-parser.add_argument('--M', type=int, default=1,
+parser.add_argument('--M', type=int, default=5,
                     help='Number of edges to attach from a new node to existing nodes. (default: 5)')
 parser.add_argument('--seed', type=int, default=0, help='Random seed initializer.')
 parser.add_argument('--graph-mode', type=str, default="WS",
                     help="Random graph family. [ER, WS, BA] (default: WS)")
-parser.add_argument('--N', type=int, default=8, help="Number of graph node. (default: 32)")
-parser.add_argument('--stages', type=int, default=1, help='Number of random layers. (default: 1)')
+parser.add_argument('--N', type=int, default=32, help="Number of graph node. (default: 32)")
+parser.add_argument('--stages', type=int, default=2, help='Number of random layers. (default: 1)')
 parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning rate. (default: --)')
 parser.add_argument('--batch-size', type=int, default=128, help='Batch size. (default: --)')
 parser.add_argument('--regime', type=str, default="small",
@@ -75,7 +75,6 @@ def main():
                   metrics=[keras.metrics.sparse_categorical_accuracy])
 
     # model.save_graph_image(path='./graph_images/')
-
     if args.augmented:
         print('In augmented')
         n_val = x_train.shape[0] // 10

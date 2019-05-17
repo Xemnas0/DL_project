@@ -35,7 +35,7 @@ parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning 
 parser.add_argument('--batch-size', type=int, default=128, help='Batch size. (default: --)')
 parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
-parser.add_argument('--dataset', type=str, default="MNIST",
+parser.add_argument('--dataset', type=str, default="CIFAR10",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
 parser.add_argument('--augmented', type=bool, default=True)
 parser.add_argument('--stride', type=int, default=2)
@@ -90,9 +90,15 @@ def main():
                                        zoom_range=[0.9, 1.25],
                                        horizontal_flip=True,
                                        vertical_flip=False,
+                                       featurewise_center=True,
+                                       featurewise_std_normalization=True,
                                        fill_mode='reflect',
                                        data_format='channels_last',
                                        brightness_range=[0.5, 1.5])
+        image_gen.fit(x_train)
+
+        x_val = (x_val - image_gen.mean) / image_gen.std
+        x_test = (x_test - image_gen.mean) / image_gen.std
 
         history = model.fit_generator(image_gen.flow(x_train, y_train, batch_size=args.batch_size),
                                       steps_per_epoch=np.ceil(x_train.shape[0] / args.batch_size),

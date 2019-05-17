@@ -10,7 +10,7 @@ from utils import get_graph
 import numpy as np
 import os
 
-WEIGHT_DECAY = 1e-4
+WEIGHT_DECAY = 5e-5
 
 
 class Aggregation(keras.layers.Layer):

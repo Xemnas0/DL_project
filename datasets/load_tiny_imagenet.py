@@ -1,11 +1,36 @@
 import numpy as np
 from PIL import Image
 import os
+
+from sklearn.utils import shuffle
 from tqdm import tqdm
+from tqdm import tqdm
+import glob
+import numpy
+import os
+import zipfile
+
+from nnabla.logger import logger
+from nnabla.utils.data_source_loader import download
 
 PATH_TO_VAL_ANNOT = 'datasets/tiny-imagenet-200/val/val_annotations.txt'
 SAVE_PATH = 'datasets/tiny_imagenet_data.npz'
 
+
+def download_tiny_imagenet():
+    url = "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
+    dir_data = os.path.join('datasets', 'tiny-imagenet-200')
+    if not os.path.isdir(dir_data):
+        f = download(url)
+        logger.info('Extracting {} ...'.format(f.name))
+        z = zipfile.ZipFile(f)
+        d = 'datasets/'
+        l = z.namelist()
+        for i in tqdm(range(len(l))):
+            z.extract(l[i], d)
+        z.close()
+        f.close()
+    return dir_data
 
 def get_val_ids():
     lines = open(PATH_TO_VAL_ANNOT, 'r').read()
@@ -96,6 +121,8 @@ def load_tiny_imagenet(path):
 
     y_train = np.reshape(y_train, (len(y_train), 1))
     y_val = np.reshape(y_val, (len(y_val), 1))
+
+    X_train, y_train = shuffle(X_train, y_train)
 
     save_to_file(X_train, y_train, X_val, y_val)
 

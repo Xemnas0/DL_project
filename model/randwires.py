@@ -143,21 +143,22 @@ class RandWireNN(keras.Model):
 
         self.stages = []
         self.regime = args.regime
-        channels = args.C
+
+        self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
+                             input_shape=input_shape)
 
         if args.regime == 'small':
-            self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
-                                 input_shape=input_shape)
             self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=False, strides=args.stride)
         elif args.regime == 'regular':
-            self.conv1 = Triplet(channels=args.C // 2, name='conv1', activation=None, random=False, strides=2,
-                                 input_shape=input_shape)
+            self.random_args['stride'] = 2
             self.conv2 = Triplet(channels=args.C, name='conv2', activation='relu', random=True, N=args.N // 2,
                                  rand_args=self.random_args)
+            self.random_args['stride'] = args.stride
 
+        channels = args.C if args.regime == 'small' else 2 * args.C
         for stage in range(args.stages):
             self.stages.append(
-                Triplet(channels=channels, name='conv{}'.format(3+stage), activation='relu', random=True, N=args.N,
+                Triplet(channels=channels, name='conv{}'.format(3 + stage), activation='relu', random=True, N=args.N,
                         rand_args=self.random_args))
             channels *= 2
 
@@ -209,7 +210,7 @@ class RandWireNN(keras.Model):
                     dgraph.add_edge('conv1', node + c)
             elif i > 0:
                 for node in start_node:
-                    dgraph.add_edge('output{}'.format(i-1), node + c)
+                    dgraph.add_edge('output{}'.format(i - 1), node + c)
 
             dgraph.add_node('output{}'.format(i), color='orange', style='filled', label='')
 
@@ -236,7 +237,7 @@ class RandWireNN(keras.Model):
 
         # pygraphviz_graph.add_subgraph(in_node, rank='same')
         # pygraphviz_graph.add_subgraph(out_node, rank='same')
-        filename = self.get_filename() + '.png'
+        filename = self.get_filename() + '.pdf'
 
         pygraphviz_graph.draw(path=path + filename, prog='dot')
         print('Model printed in file.')
@@ -246,12 +247,12 @@ class RandWireNN(keras.Model):
         n_stages = len(self.stages)
         if self.random_args['graph_mode'] == 'WS':
             filename = 'WS_{4}_stages{5}_N{0}_K{1}_P{2}_seed{3}'.format(self.random_args['n'],
-                                                                            self.random_args['k'],
-                                                                            int(self.random_args['p'] * 100),
-                                                                            self.random_args['seed'],
-                                                                            self.random_args['regime'],
-                                                                            n_stages
-                                                                            )
+                                                                        self.random_args['k'],
+                                                                        int(self.random_args['p'] * 100),
+                                                                        self.random_args['seed'],
+                                                                        self.random_args['regime'],
+                                                                        n_stages
+                                                                        )
         elif self.random_args['graph_mode'] == 'ER':
             filename = 'ER_{3}_stages{4}_N{0}_P{1}_seed{2}'.format(
                 self.random_args['n'],

@@ -41,9 +41,10 @@ def load_dataset(dataset_name):
         x_train = x_train.astype('float32')
         x_test = x_test.astype('float32')
     elif dataset_name == 'TINY_IMAGENET':
-        path = 'datasets/tiny-imagenet-200'
         save_file = 'datasets/tiny_imagenet_data.npz'
+
         if not os.path.isfile(save_file):
+            path = download_tiny_imagenet()
             [x_train, y_train, x_test, y_test] = load_tiny_imagenet(path)
         else:
             [x_train, y_train, x_test, y_test] = load_from_file(save_file)

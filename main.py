@@ -74,7 +74,6 @@ def main():
     model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
                   metrics=[keras.metrics.sparse_categorical_accuracy])
     model.save_graph_image(path='./graph_images/')
-    return None
 
     if args.augmented:
         print('In augmented')

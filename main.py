@@ -105,8 +105,15 @@ def main():
                                       epochs=args.epochs,
                                       validation_data=(x_val, y_val), callbacks=callbacks)
     else:
+        image_gen = ImageDataGenerator(featurewise_center=True,
+                                       featurewise_std_normalization=True,
+                                       data_format='channels_last')
+        image_gen.fit(x_train)
+        x_train = (x_train - image_gen.mean) / image_gen.std
+        x_test = (x_test - image_gen.mean) / image_gen.std
+
         # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
-        history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1, callbacks=callbacks)
+        history = model.fit(x_train, y_train, epochs=args.epochs, batch_size=args.batch_size, validation_split=0.1, callbacks=callbacks)
 
     loss, acc = model.evaluate(x_test, y_test)
 

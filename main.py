@@ -37,7 +37,7 @@ parser.add_argument('--regime', type=str, default="regular",
                     help='[small, regular] (default: regular)')
 parser.add_argument('--dataset', type=str, default="CIFAR10",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
-parser.add_argument('--augmented', type=bool, default=True)
+parser.add_argument('--augmented', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=False)
 parser.add_argument('--stride', type=int, default=2)
 parser.add_argument('--lr_period', type=int, default=10, help='Learning rate decay period. (default: 150)')
 parser.add_argument('--min_lr', type=float, default=1e-5, help='Learning rate decay period. (default: 150)')

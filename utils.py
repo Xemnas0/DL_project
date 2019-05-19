@@ -14,6 +14,18 @@ MAXINT32 = 4294967295 // 10
 
 
 def get_graph(args, n):
+    """
+    Generates a networkx directed acyclic graph.
+
+    Arguments:
+        args: dict with hyperparameters for the generation
+            of the graph.
+        n: number of nodes of the graph.
+
+    Returns:
+        Networkx directed graph, nodes sorted with topological sort,
+        list of input nodes, list of output nodes.
+    """
     k = args['k']
     p = args['p']
     m = args['m']

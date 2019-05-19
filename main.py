@@ -19,27 +19,28 @@ parser = argparse.ArgumentParser('parameters')
 
 parser.add_argument('--epochs', type=int, default=100, help='Number of epochs. (default: 100)')
 parser.add_argument('--P', type=float, default=0.75, help='Graph edge probability. (default: 0.75)')
-parser.add_argument('--C', type=int, default=8,
-                    help='Number of channels. (default: --)')
+parser.add_argument('--C', type=int, default=64,
+                    help='Number of channels. (default: 64)')
 parser.add_argument('--K', type=int, default=4,
                     help='Each node is connected to k nearest neighbors in ring topology. (default: 4)')
 parser.add_argument('--M', type=int, default=5,
                     help='Number of edges to attach from a new node to existing nodes. (default: 5)')
-parser.add_argument('--seed', type=int, default=0, help='Random seed initializer.')
-parser.add_argument('--graph-mode', type=str, default="BA",
+parser.add_argument('--seed', type=int, default=0, help='Random seed initializer. (default: 0)')
+parser.add_argument('--graph-mode', type=str, default="WS",
                     help="Random graph family. [ER, WS, BA] (default: WS)")
-parser.add_argument('--N', type=int, default=6, help="Number of graph node. (default: 32)")
+parser.add_argument('--N', type=int, default=32, help="Number of graph node. (default: 32)")
 parser.add_argument('--stages', type=int, default=1, help='Number of random layers. (default: 1)')
 parser.add_argument('--learning-rate', type=float, default=0.1, help='Learning rate. (default: 0.1)')
-parser.add_argument('--batch-size', type=int, default=10, help='Batch size. (default: --)')
+parser.add_argument('--batch-size', type=int, default=32, help='Batch size. (default: 32)')
 parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
 parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
-parser.add_argument('--augmented', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=False)
-parser.add_argument('--stride', type=int, default=2)
-parser.add_argument('--lr_period', type=int, default=10, help='Learning rate decay period. (default: 150)')
-parser.add_argument('--min_lr', type=float, default=1e-5, help='Learning rate decay period. (default: 150)')
+parser.add_argument('--augmented', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=False,
+                    help='Enable augmentation. (default: False)')
+parser.add_argument('--stride', type=int, default=1, help='Stride for random the stage layers. (default: 1)')
+parser.add_argument('--lr_period', type=int, default=150, help='Learning rate decay period. (default: 150)')
+parser.add_argument('--min_lr', type=float, default=1e-5, help='Minimum learning rate. (default: 1e-5)')
 parser.add_argument('--update_type_lr', type=str, default='batch',
                     help='Cycle counted either over \'epoch\' or \'batch\'. (default: batch)')
 
@@ -50,8 +51,7 @@ np.random.seed(args.seed)
 
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
-    x_train = x_train[:20]
-    y_train = y_train[:20]
+
     lr_decay = MyCosineDecayLearningRate(initial_lr=args.learning_rate, T_cycle=args.lr_period, min_lr=args.min_lr,
                                          update_type=args.update_type_lr,
                                          n_batches=np.ceil(x_train.shape[0] / args.batch_size),

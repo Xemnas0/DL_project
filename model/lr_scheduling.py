@@ -4,15 +4,31 @@ import numpy as np
 
 
 class MyCosineDecayLearningRate(keras.callbacks.Callback):
-    """Learning rate scheduler which sets the learning rate according to schedule.
-
-    Arguments:
-        schedule: a function that takes an epoch index
-            (integer, indexed from 0) and current learning rate
-            as inputs and returns a new learning rate as output (float).
+    """
+    Keras Callback for the learning rate schedule.
+    The decay can be either at every update (every mini-batch)
+    or at every epoch.
+    It follows the half-cosine decay with restart
+    in https://arxiv.org/abs/1608.03983 and add decay to
+    the maximum learning rate in each cycle.
     """
 
     def __init__(self, initial_lr, T_cycle, min_lr, n_batches, n_epochs, update_type='batch'):
+        """
+        Instantiates a Keras Callback for learning rate scheduling.
+
+        Arguments:
+            initial_lr: maximum learning rate of the first cycle.
+            T_cycle: period of the cycles.
+            min_lr: minimum learning rate in all the cycles.
+            n_batches: number of batches in one epoch (rounded up if float).
+            n_epochs: number of epochs of the training.
+            update_type: either 'batch' or 'epoch'. Determines if the learning rate changes at every batch or at every epoch.
+
+        Returns:
+            A Keras Callback that changes the learning
+            rate according to the schedule.
+        """
         super(MyCosineDecayLearningRate, self).__init__()
         self.max_lr_curr = initial_lr
         self.all_lr = []
@@ -24,7 +40,7 @@ class MyCosineDecayLearningRate(keras.callbacks.Callback):
         self.update_type = update_type
         self.n_batches = n_batches
         self.n_cycles = np.ceil((self.n_batches * n_epochs) / T_cycle)
-        self.max_lr_schedule = np.linspace(start=initial_lr, stop=self.min_lr*100, num=self.n_cycles+1)
+        self.max_lr_schedule = np.linspace(start=initial_lr, stop=self.min_lr * 100, num=self.n_cycles + 1)
         self.cycle = 0
 
     def on_epoch_begin(self, epoch, logs=None):
@@ -49,6 +65,16 @@ class MyCosineDecayLearningRate(keras.callbacks.Callback):
             self.all_lr.append(scheduled_lr)
 
     def lr_schedule(self, t):
+        """
+        Computes the value of the learning rate.
+
+        Arguments:
+            t: the counter of either the global batch or epoch.
+
+        Returns:
+            The learning rate for this batch or epoch.
+
+        """
         indT_current = t % self.T_cycle
         T_current = self.scaled_Tcurrent[indT_current]
 

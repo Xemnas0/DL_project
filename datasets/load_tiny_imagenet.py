@@ -1,12 +1,7 @@
 import numpy as np
 from PIL import Image
-import os
-
 from sklearn.utils import shuffle
 from tqdm import tqdm
-from tqdm import tqdm
-import glob
-import numpy
 import os
 import zipfile
 
@@ -18,6 +13,16 @@ SAVE_PATH = 'datasets/tiny_imagenet_data.npz'
 
 
 def download_tiny_imagenet():
+    """
+        donwload and unzip the tiny imagenet dataset
+
+        Arguments:
+            dataset_name: can be MNIST, CIFAR10, CIFAR100 or TINY_IMAGENET.
+
+        Returns:
+                dir_data: the directory of the data containing the tiny imagenet
+    """
+
     url = "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
     dir_data = os.path.join('datasets', 'tiny-imagenet-200')
     if not os.path.isdir(dir_data):
@@ -34,6 +39,14 @@ def download_tiny_imagenet():
 
 
 def get_val_ids():
+    """
+        get validation images and corresponding IDs from file
+
+
+        Returns:
+                val_annotations: dictionary with ID value and image name key
+    """
+
     lines = open(PATH_TO_VAL_ANNOT, 'r').read()
     val_annotations = {}
     for line in lines.splitlines():
@@ -44,6 +57,16 @@ def get_val_ids():
 
 
 def read_image(path):
+    """
+        read image data. if it has one channel copy so that it has 3 channels
+
+        Arguments:
+            path: path to image
+
+        Returns:
+                image: array with image values
+    """
+
     image = np.array(Image.open(path))
 
     if len(np.shape(image)) == 2:
@@ -66,9 +89,19 @@ def load_from_file(path):
     return [X_train, y_train, X_val, y_val]
 
 
-# validation is the test because test has no labels
 def load_tiny_imagenet(path):
-    # Load images
+    """
+          loads tiny imagenet
+
+           Arguments:
+               path: path to tiny imagenet
+
+           Returns:
+                   X_train: array with train data
+                   y_train: array with train labels
+                   X_val: array with validation data
+                   y_val: array with validation labels
+       """
     num_classes = 200
 
     X_train = np.zeros([num_classes * 500, 64, 64, 3], dtype='uint8')
@@ -88,6 +121,7 @@ def load_tiny_imagenet(path):
     train_folders = os.listdir(train_path)
     train_folders.sort()
 
+    # mac compatibility
     folder = '.DS_Store'
     if folder in train_folders:
         train_folders.remove(folder)
@@ -131,20 +165,6 @@ def load_tiny_imagenet(path):
 # It runs similar to the ImageNet challenge (ILSVRC).
 # Tiny ImageNet has 200 classes and each class has 500 training images, 50 validation images, and 50 test images.
 # The images are down-sampled to 64 x 64 pixels.
-
-def load_tinyimagenet_dict():
-    classes = {}
-    path = 'datasets/tiny-imagenet-200'
-    train_path = path + '/train'
-    train_folders = os.listdir(train_path)
-    train_folders.sort()
-    i = 0
-    for class_name in train_folders:
-        classes[i] = class_name
-        i += 1
-    return classes
-
-
 if __name__ == "__main__":
     path = '../data/tiny-imagenet-200'
     save_path = 'tiny_imagenet_data.npz'

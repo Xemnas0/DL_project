@@ -14,10 +14,7 @@ SAVE_PATH = 'datasets/tiny_imagenet_data.npz'
 
 def download_tiny_imagenet():
     """
-        donwload and unzip the tiny imagenet dataset
-
-        Arguments:
-            dataset_name: can be MNIST, CIFAR10, CIFAR100 or TINY_IMAGENET.
+        Downloads and unzips the tiny imagenet dataset.
 
         Returns:
                 dir_data: the directory of the data containing the tiny imagenet
@@ -40,11 +37,10 @@ def download_tiny_imagenet():
 
 def get_val_ids():
     """
-        get validation images and corresponding IDs from file
-
+        Loads validation images and corresponding IDs from file.
 
         Returns:
-                val_annotations: dictionary with ID value and image name key
+            val_annotations: dictionary with ID value and image name key
     """
 
     lines = open(PATH_TO_VAL_ANNOT, 'r').read()
@@ -58,13 +54,13 @@ def get_val_ids():
 
 def read_image(path):
     """
-        read image data. if it has one channel copy so that it has 3 channels
+        Reads image data. If it has one channel copy so that it has 3 channels.
 
         Arguments:
-            path: path to image
+            path: path to image.
 
         Returns:
-                image: array with image values
+            image: array with image values.
     """
 
     image = np.array(Image.open(path))
@@ -91,17 +87,17 @@ def load_from_file(path):
 
 def load_tiny_imagenet(path):
     """
-          loads tiny imagenet
+    Loads tiny imagenet on the RAM.
 
-           Arguments:
-               path: path to tiny imagenet
+    Arguments:
+       path: path to tiny imagenet
 
-           Returns:
-                   X_train: array with train data
-                   y_train: array with train labels
-                   X_val: array with validation data
-                   y_val: array with validation labels
-       """
+    Returns:
+       X_train: array with train data
+       y_train: array with train labels
+       X_val: array with validation data
+       y_val: array with validation labels
+    """
     num_classes = 200
 
     X_train = np.zeros([num_classes * 500, 64, 64, 3], dtype='uint8')

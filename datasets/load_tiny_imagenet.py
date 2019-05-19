@@ -32,6 +32,7 @@ def download_tiny_imagenet():
         f.close()
     return dir_data
 
+
 def get_val_ids():
     lines = open(PATH_TO_VAL_ANNOT, 'r').read()
     val_annotations = {}
@@ -49,10 +50,8 @@ def read_image(path):
         image = np.array([image, image, image])
         image = np.transpose(image, (1, 2, 0))
 
-    # else:
-    #     image = np.transpose(X, (2, 0, 1))
-
     return image
+
 
 def save_to_file(X_train, y_train, X_val, y_val):
     np.savez(SAVE_PATH, X_train=X_train, y_train=y_train,
@@ -88,7 +87,6 @@ def load_tiny_imagenet(path):
 
     train_folders = os.listdir(train_path)
     train_folders.sort()
-
 
     folder = '.DS_Store'
     if folder in train_folders:
@@ -145,6 +143,7 @@ def load_tinyimagenet_dict():
         classes[i] = class_name
         i += 1
     return classes
+
 
 if __name__ == "__main__":
     path = '../data/tiny-imagenet-200'

@@ -55,17 +55,13 @@ def main():
     lr_decay = MyCosineDecayLearningRate(initial_lr=args.learning_rate, T_cycle=args.lr_period, min_lr=args.min_lr,
                                          update_type=args.update_type_lr,
                                          n_batches=np.ceil(x_train.shape[0] / args.batch_size),
-                                         n_epochs= args.epochs)
-    early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5,
-                                                   verbose=0, mode='auto', restore_best_weights=True)
+                                         n_epochs=args.epochs)
+
     callbacks = [lr_decay]
 
     model = RandWireNN(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1)
     # model = ResNet(args, input_shape=x_train[0].shape, n_classes=y_train.max() + 1).get_ready_model()
 
-    # model = applications.vgg16.VGG16(weights=None, include_top=True, input_shape=x_train[0].shape)
-
-    # optimizer = keras.optimizers.Adam(args.learning_rate, decay=args.decay)
     optimizer = keras.optimizers.SGD(lr=args.learning_rate, momentum=0.9, nesterov=True)
 
     model.build(input_shape=(None,) + x_train[0].shape)
@@ -73,10 +69,11 @@ def main():
 
     model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
                   metrics=[keras.metrics.sparse_categorical_accuracy])
+
     # model.save_graph_image(path='./graph_images/')
 
     if args.augmented:
-        print('In augmented')
+        print('Augmented training')
         n_val = x_train.shape[0] // 10
         x_val = x_train[:n_val]
         x_train = x_train[n_val:]
@@ -112,8 +109,8 @@ def main():
         x_train = (x_train - image_gen.mean) / image_gen.std
         x_test = (x_test - image_gen.mean) / image_gen.std
 
-        # history = model.fit(x_train, y_train, epochs=args.epochs, validation_split=0.1)
-        history = model.fit(x_train, y_train, epochs=args.epochs, batch_size=args.batch_size, validation_split=0.1, callbacks=callbacks)
+        history = model.fit(x_train, y_train, epochs=args.epochs, batch_size=args.batch_size, validation_split=0.1,
+                            callbacks=callbacks)
 
     loss, acc = model.evaluate(x_test, y_test)
 

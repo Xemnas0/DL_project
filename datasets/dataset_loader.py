@@ -26,7 +26,7 @@ def load_dataset(dataset_name):
         dataset_name: can be MNIST, CIFAR10, CIFAR100 or TINY_IMAGENET.
 
     Returns:
-            Two tuples representing the training set and the test set
+        Two tuples representing the training set and the test set
             as (x_train, y_train), (x_test, y_test)
     """
 

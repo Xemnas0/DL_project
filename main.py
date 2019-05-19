@@ -1,7 +1,6 @@
 from datetime import datetime
 import os
 from datasets.dataset_loader import load_dataset
-from datasets.load_tiny_imagenet import load_tinyimagenet_dict
 from model.randwires import RandWireNN
 import tensorflow as tf
 from tensorflow.python import keras
@@ -29,13 +28,13 @@ parser.add_argument('--M', type=int, default=5,
 parser.add_argument('--seed', type=int, default=0, help='Random seed initializer.')
 parser.add_argument('--graph-mode', type=str, default="BA",
                     help="Random graph family. [ER, WS, BA] (default: WS)")
-parser.add_argument('--N', type=int, default=32, help="Number of graph node. (default: 32)")
-parser.add_argument('--stages', type=int, default=3, help='Number of random layers. (default: 1)')
-parser.add_argument('--learning-rate', type=float, default=1e-2, help='Learning rate. (default: --)')
-parser.add_argument('--batch-size', type=int, default=128, help='Batch size. (default: --)')
-parser.add_argument('--regime', type=str, default="regular",
+parser.add_argument('--N', type=int, default=6, help="Number of graph node. (default: 32)")
+parser.add_argument('--stages', type=int, default=1, help='Number of random layers. (default: 1)')
+parser.add_argument('--learning-rate', type=float, default=0.1, help='Learning rate. (default: 0.1)')
+parser.add_argument('--batch-size', type=int, default=10, help='Batch size. (default: --)')
+parser.add_argument('--regime', type=str, default="small",
                     help='[small, regular] (default: regular)')
-parser.add_argument('--dataset', type=str, default="CIFAR10",
+parser.add_argument('--dataset', type=str, default="MNIST",
                     help='Name of the dataset to use. [CIFAR10, CIFAR100, MNIST, TINY_IMAGENET] (default: CIFAR10)')
 parser.add_argument('--augmented', type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=False)
 parser.add_argument('--stride', type=int, default=2)
@@ -51,7 +50,8 @@ np.random.seed(args.seed)
 
 def main():
     (x_train, y_train), (x_test, y_test) = load_dataset(args.dataset)
-
+    x_train = x_train[:20]
+    y_train = y_train[:20]
     lr_decay = MyCosineDecayLearningRate(initial_lr=args.learning_rate, T_cycle=args.lr_period, min_lr=args.min_lr,
                                          update_type=args.update_type_lr,
                                          n_batches=np.ceil(x_train.shape[0] / args.batch_size),
@@ -70,7 +70,7 @@ def main():
     model.compile(optimizer=optimizer, loss=keras.losses.sparse_categorical_crossentropy,
                   metrics=[keras.metrics.sparse_categorical_accuracy])
 
-    # model.save_graph_image(path='./graph_images/')
+    model.save_graph_image(path='./graph_images/')
 
     if args.augmented:
         print('Augmented training')

@@ -14,8 +14,17 @@ WEIGHT_DECAY = 5e-5
 
 
 class Aggregation(keras.layers.Layer):
-
     def __init__(self, input_dim):
+        """
+        Keras Layer representing the node operation
+        that aggregates the input of two or more edges
+        by computing a weighted sum with positive weights.
+        The weights themselves are not positive, but they go
+        through a sigmoid before the sum.
+
+        Arguments:
+            input_dim: number of incoming edges in the node (in degree).
+        """
         super(Aggregation, self).__init__()
         self.w = self.add_weight(shape=(input_dim, 1, 1, 1, 1),
                                  initializer='lecun_normal',
@@ -33,6 +42,18 @@ class Aggregation(keras.layers.Layer):
 class RandLayer(keras.layers.Layer):
 
     def __init__(self, channels, random_args, activation, N):
+        """
+        Keras Layer representing the randomly wired layer.
+        Generates a graph and the operations for each node.
+
+        Arguments:
+            channels: number of filters per node.
+            random_args: dict with parameters for the
+                generation of the and the stride of the convolution.
+            activation: activation function. Usually ReLU.
+            N: number of nodes in the layer.
+        """
+
         super(RandLayer, self).__init__()
 
         self.graph, self.graph_order, self.start_node, self.end_node = get_graph(random_args, N)
@@ -80,6 +101,25 @@ class RandLayer(keras.layers.Layer):
 class Triplet(keras.layers.Layer):
     def __init__(self, channels, name=None, activation=None, random=False, input_shape=None, strides=(1, 1),
                  kernel_size=(3, 3), N=None, rand_args=None):
+        """
+        Keras layer that encapsule the triplet ReLU-Conv-BN.
+        The Conv component can either be a single separable
+        convolution or a RandLayer, depending on the 'random'
+        parameter.
+
+        Arguments:
+            channels: number of filters.
+            name: layer's name. Useful for the summary.
+            activation: activation function. Usually ReLU.
+            random: bool defining what type of layer this is.
+            input_shape: shape of the input, e.g. (None, height, width, channels).
+                Necessary only for the first layer of the network.
+            strides: stride of the convolution. Only used if random=False.
+            kernel_size: size of the filter.
+            N: number of nodes in the random layer.
+            rand_args: hyperparameters of the random layer.
+        """
+
         super(Triplet, self).__init__(name=name)
 
         if activation is None or activation == 'linear':
@@ -111,6 +151,15 @@ class Triplet(keras.layers.Layer):
 
 class Classifier(keras.layers.Layer):
     def __init__(self, n_classes):
+        """
+        Last layer of the model outputting the probabilities
+        for each class.
+        Performs a SeparableConv2D 1x1, BN, GlobalAveragePooling2D,
+        FC, Dropout, Softmax.
+
+        Arguments:
+            n_classes: output size.
+        """
         super(Classifier, self).__init__(name='classifier')
 
         self.conv = SeparableConv2D(filters=1280, kernel_size=(1, 1), kernel_regularizer=l2(WEIGHT_DECAY),
@@ -133,6 +182,14 @@ class Classifier(keras.layers.Layer):
 
 class RandWireNN(keras.Model):
     def __init__(self, args, input_shape, n_classes):
+        """
+        Randomly wired Keras model.
+
+        Arguments:
+            args: namespace with parameters for instantiating the model.
+            input_shape: shape of the input, e.g. (None, height, width, channels).
+            n_classes: size of the output.
+        """
         super(RandWireNN, self).__init__(name='randomly_wired_network')
 
         self.n_classes = n_classes
@@ -177,6 +234,16 @@ class RandWireNN(keras.Model):
         return x
 
     def save_graph_image(self, path=''):
+        """
+        Saves a very beautiful visualization of
+        the graph in a .pdf file in the provided path.
+        This function requires networkx and pygraphviz.
+
+        Arguments:
+            path: destination of the graph image.
+                If the path does not exist, it is
+                automagically created.
+        """
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -235,14 +302,16 @@ class RandWireNN(keras.Model):
             pygraphviz_graph.add_subgraph(list(np.array(start_node) + c), rank='same')
             pygraphviz_graph.add_subgraph(list(np.array(end_node) + c), rank='same')
 
-        # pygraphviz_graph.add_subgraph(in_node, rank='same')
-        # pygraphviz_graph.add_subgraph(out_node, rank='same')
         filename = self.get_filename() + '.pdf'
 
         pygraphviz_graph.draw(path=path + filename, prog='dot')
         print('Model printed in file.')
 
     def get_filename(self):
+        """
+        Returns:
+            a string that summarizes the specifics of the model.
+        """
         filename = None
         n_stages = len(self.stages)
         if self.random_args['graph_mode'] == 'WS':

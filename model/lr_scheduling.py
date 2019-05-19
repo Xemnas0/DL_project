@@ -23,7 +23,8 @@ class MyCosineDecayLearningRate(keras.callbacks.Callback):
             min_lr: minimum learning rate in all the cycles.
             n_batches: number of batches in one epoch (rounded up if float).
             n_epochs: number of epochs of the training.
-            update_type: either 'batch' or 'epoch'. Determines if the learning rate changes at every batch or at every epoch.
+            update_type: either 'batch' or 'epoch'.
+                Determines if the learning rate changes at every batch or at every epoch.
 
         Returns:
             A Keras Callback that changes the learning

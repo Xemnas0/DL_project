@@ -299,8 +299,16 @@ class RandWireNN(keras.Model):
             tot_nodes += n_nodes
             c = tot_nodes - n_nodes
 
+            removed_nodes = []
+            for in_node in start_node:
+                if in_node in end_node:
+                    end_node.remove(in_node)
+                    removed_nodes.append(in_node)
+
             pygraphviz_graph.add_subgraph(list(np.array(start_node) + c), rank='same')
             pygraphviz_graph.add_subgraph(list(np.array(end_node) + c), rank='same')
+
+            stage.conv.end_node = end_node + removed_nodes
 
         filename = self.get_filename() + '.pdf'
 

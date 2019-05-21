@@ -49,7 +49,7 @@ def get_graph(args, n):
     for indeg, outdeg in zip(dgraph.in_degree, dgraph.out_degree):
         if indeg[1] == 0:
             in_node.append(indeg[0])
-        elif outdeg[1] == 0:
+        if outdeg[1] == 0:
             out_node.append(outdeg[0])
 
     sorted = list(nx.topological_sort(dgraph))
